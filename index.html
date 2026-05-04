@@ -555,7 +555,7 @@
                 <div class="form-group">
                     <label>Código de Barras</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="text" id="manual-barcode" class="form-control" placeholder="Ex: 7891000053508">
+                        <input type="tel" inputmode="numeric" id="manual-barcode" class="form-control" placeholder="Ex: 7891000053508">
                         <button class="btn btn-buy" style="width: auto; padding: 0 15px;" onclick="searchManualBarcode()">Buscar</button>
                     </div>
                 </div>
@@ -1015,6 +1015,21 @@
             document.getElementById('manual-entry').style.display = 'none';
             document.getElementById('manual-barcode').value = '';
             fetchProduct(code);
+        }
+
+        function showAddModal(barcode, prefill = null) {
+            document.getElementById('modal-barcode').value = barcode;
+            document.getElementById('modal-name').value = prefill?.nome || "";
+            document.getElementById('modal-brand').value = prefill?.marca || "";
+            document.getElementById('modal-price').value = "";
+            openModal('modal-add');
+            
+            // Foco automático no nome se estiver vazio (produto novo)
+            setTimeout(() => {
+                const nameInput = document.getElementById('modal-name');
+                nameInput.focus();
+                if (nameInput.value) nameInput.select();
+            }, 300);
         }
 
         async function fetchProduct(code) {
