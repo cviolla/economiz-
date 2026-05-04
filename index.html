@@ -564,7 +564,7 @@
             </div>
             <div class="form-group">
                 <label>Preço neste mercado</label>
-                <input type="number" step="0.01" id="modal-price" class="form-control" placeholder="0.00">
+                <input type="tel" id="modal-price" class="form-control" placeholder="R$ 0,00" oninput="maskCurrency(this)" style="font-size: 22px; font-weight: 800; letter-spacing: 1px;">
             </div>
             <div class="actions">
                 <button class="btn btn-reject" onclick="closeModal('modal-product')">Cancelar</button>
@@ -578,7 +578,7 @@
             <h2 style="margin-bottom: 20px;">Definir Orçamento</h2>
             <div class="form-group">
                 <label>Quanto deseja gastar hoje?</label>
-                <input type="number" id="budget-input" class="form-control" placeholder="500.00">
+                <input type="tel" id="budget-input" class="form-control" placeholder="R$ 0,00" oninput="maskCurrency(this)" style="font-size: 22px; font-weight: 800; letter-spacing: 1px;">
             </div>
             <button class="btn btn-buy" onclick="saveBudget()">Salvar</button>
         </div>
@@ -659,10 +659,24 @@
             }
         }
 
+        // --- Máscara Monetária (estilo caixa de supermercado) ---
+        function maskCurrency(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length === 0) { input.value = ''; return; }
+            v = (parseInt(v, 10) / 100).toFixed(2);
+            input.value = 'R$ ' + v.replace('.', ',');
+        }
+
+        function parseCurrency(str) {
+            if (!str) return 0;
+            const clean = str.replace(/[^\d,]/g, '').replace(',', '.');
+            return parseFloat(clean) || 0;
+        }
+
         // --- Budget Logic ---
         function saveBudget() {
-            const val = parseFloat(document.getElementById('budget-input').value);
-            if (!isNaN(val)) {
+            const val = parseCurrency(document.getElementById('budget-input').value);
+            if (val > 0) {
                 state.budget = val;
                 persist();
                 updateBudgetUI();
@@ -833,9 +847,9 @@
 
         function saveNewProduct() {
             const marketId = parseInt(document.getElementById('modal-market').value);
-            const price = parseFloat(document.getElementById('modal-price').value);
+            const price = parseCurrency(document.getElementById('modal-price').value);
             
-            if (isNaN(price)) { alert("Informe o preço!"); return; }
+            if (price <= 0) { alert("Informe o preço!"); return; }
 
             const newProd = {
                 ...state.currentScanned,
