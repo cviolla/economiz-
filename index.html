@@ -69,14 +69,54 @@
         body.light-mode {
             --bg-deep: #F5F5F7;
             --bg-nav: rgba(255, 255, 255, 0.8);
-            --bg-card: rgba(0, 0, 0, 0.03);
-            --bg-card-hover: rgba(0, 0, 0, 0.06);
-            --text-main: #0F0F12;
+            --bg-card: rgba(0, 0, 0, 0.04);
+            --bg-card-hover: rgba(0, 0, 0, 0.07);
+            --bg-subtle: rgba(0, 0, 0, 0.03);
+            --text-main: #1A1A1F;
             --text-dim: #6E6E73;
-            --border: rgba(0, 0, 0, 0.08);
-            --success: #00C853;
+            --accent: #E5B800;
+            --accent-glow: rgba(229, 184, 0, 0.25);
+            --border: rgba(0, 0, 0, 0.10);
+            --success: #00A843;
             --error: #D32F2F;
-            --modal-bg: rgba(255, 255, 255, 0.9);
+            --modal-bg: rgba(245, 245, 247, 0.95);
+        }
+
+        body.light-mode .btn-buy {
+            color: #000;
+        }
+
+        body.light-mode .product-img.placeholder-img {
+            background: rgba(0,0,0,0.04);
+            border-color: rgba(0,0,0,0.12);
+        }
+
+        body.light-mode .price-tag {
+            background: rgba(0,0,0,0.03);
+        }
+
+        body.light-mode .comparison-card {
+            background: rgba(0,0,0,0.02);
+        }
+
+        body.light-mode .progress-ring .bg {
+            stroke: rgba(0,0,0,0.08);
+        }
+
+        body.light-mode .nav-tabs {
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.06);
+        }
+
+        body.light-mode .budget-card {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        body.light-mode .product-card {
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+
+        body.light-mode .modal-content {
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
 
         * {
@@ -748,7 +788,7 @@
                 <button class="btn btn-buy" style="flex:1; font-size: 11px; background: rgba(255,204,0,0.2); color: var(--accent);" onclick="startPhotoScanner()">
                     <i data-lucide="image" size="14"></i> Foto
                 </button>
-                <button class="btn btn-buy" style="flex:1; font-size: 11px; background: rgba(255,255,255,0.05); color: var(--text-dim);" onclick="showManualEntry()">
+                <button class="btn btn-buy" style="flex:1; font-size: 11px; background: var(--bg-card); color: var(--text-dim);" onclick="showManualEntry()">
                     <i data-lucide="keyboard" size="14"></i> Manual
                 </button>
             </div>
@@ -1051,12 +1091,12 @@
             list.innerHTML = totals.map(t => {
                 const pct = totalGeral > 0 ? (t.spent / totalGeral * 100).toFixed(0) : 0;
                 return `
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; border: 1px solid var(--border);">
+                    <div style="background: var(--bg-card); padding: 15px; border-radius: 15px; border: 1px solid var(--border);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: 600;">${t.name}</span>
                             <span style="font-weight: 800; color: var(--accent);">${fCurr(t.spent)}</span>
                         </div>
-                        <div style="margin-top: 8px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+                        <div style="margin-top: 8px; height: 6px; background: var(--bg-card-hover); border-radius: 3px; overflow: hidden;">
                             <div style="width: ${pct}%; height: 100%; background: var(--accent);"></div>
                         </div>
                         <div style="text-align: right; font-size: 10px; color: var(--text-dim); margin-top: 4px;">${pct}% do gasto total</div>
@@ -1255,11 +1295,11 @@
             const nav = document.getElementById('market-quick-nav');
             if (!nav) return;
             nav.innerHTML = state.markets.map((m, i) => `
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                    <span style="font-size: 7px; text-transform: uppercase; color: var(--text-dim); font-weight: 800; max-width: 35px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
+                    <span style="font-size: 8px; text-transform: uppercase; color: var(--text-dim); font-weight: 800; max-width: 50px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1;">
                         ${m.name || 'M' + (i+1)}
                     </span>
-                    <button onclick="showSection('mercados')" style="width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                    <button onclick="showSection('mercados')" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
                         ${i+1}
                     </button>
                 </div>
@@ -1751,7 +1791,7 @@
             rankingList.innerHTML = uniqueProds.map(best => `
                 <div class="ranking-card">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 35px; height: 35px; background: var(--bg-card); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="tag" size="16" style="color: var(--accent);"></i>
                         </div>
                          <div>
