@@ -561,6 +561,17 @@
                 </div>
             </div>
 
+            <!-- Smart Search -->
+            <div style="position: sticky; top: -1px; z-index: 100; background: var(--bg-deep); padding: 10px 0; margin-bottom: 5px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="position: relative;">
+                        <i data-lucide="search" size="18" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                        <input type="text" id="main-search" class="form-control" placeholder="Buscar por nome, marca ou código..." 
+                               style="padding-left: 45px; border-radius: 15px;" oninput="onSearchChange(this.value)">
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="font-size: 18px;">Meus Itens</h3>
                 <div style="display: flex; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 12px; border: 1px solid var(--border);">
@@ -570,10 +581,7 @@
                 </div>
             </div>
             <div id="product-list" class="products-list">
-                <div style="text-align: center; color: var(--text-dim); margin-top: 40px;">
-                    <i data-lucide="package-search" size="48" style="opacity: 0.3;"></i>
-                    <p style="margin-top: 10px;">Nenhum produto cadastrado.</p>
-                </div>
+                <!-- Products will be injected here -->
             </div>
         </section>
 
@@ -695,7 +703,8 @@
             isScannerActive: false,
             currentScanned: null,
             activeMarketIndex: null,
-            viewMode: 'normal'
+            viewMode: 'normal',
+            searchQuery: ""
         };
 
         // --- Initialization ---
@@ -1114,10 +1123,32 @@
             updateBudgetUI();
         }
 
+        function onSearchChange(val) {
+            state.searchQuery = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            renderProducts();
+        }
+
         function renderProducts() {
             const list = document.getElementById('product-list');
-            if (state.products.length === 0) {
-                list.innerHTML = `<div style="text-align: center; color: var(--text-dim); margin-top: 40px;"><i data-lucide="package-search" size="48" style="opacity: 0.3;"></i><p style="margin-top: 10px;">Nenhum produto cadastrado.</p></div>`;
+            const query = state.searchQuery || "";
+            
+            // Filtro Inteligente
+            const filtered = state.products.filter(p => {
+                if (!query) return true;
+                const searchBase = `${p.nome} ${p.marca} ${p.codigo_barras}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                return searchBase.includes(query);
+            });
+
+            if (filtered.length === 0) {
+                const msg = state.products.length === 0 ? "Nenhum produto cadastrado." : `Nenhum item encontrado para "${document.getElementById('main-search').value}"`;
+                const icon = state.products.length === 0 ? "package-search" : "search-x";
+                list.innerHTML = `
+                    <div style="text-align: center; color: var(--text-dim); padding: 40px 20px;">
+                        <i data-lucide="${icon}" size="48" style="opacity: 0.3;"></i>
+                        <p style="margin-top: 15px;">${msg}</p>
+                        ${query ? '<button class="btn" style="width: auto; margin-top: 15px; padding: 8px 20px;" onclick="clearSearch()">Limpar Busca</button>' : ''}
+                    </div>
+                `;
                 lucide.createIcons();
                 return;
             }
@@ -1129,7 +1160,7 @@
                 grouped[p.codigo_barras].push(p);
             });
 
-            list.innerHTML = state.products.slice().reverse().map(p => {
+            list.innerHTML = filtered.slice().reverse().map(p => {
                 const brothers = grouped[p.codigo_barras];
                 const minPrice = Math.min(...brothers.map(b => b.preco));
                 const maxPrice = Math.max(...brothers.map(b => b.preco));
@@ -1281,6 +1312,11 @@
         // --- Modals ---
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
+        }
+
+        function clearSearch() {
+            document.getElementById('main-search').value = "";
+            onSearchChange("");
         }
 
         document.getElementById('btn-set-budget').onclick = () => {

@@ -45,7 +45,13 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Persistir escolha do usuário no `localStorage`
 
 ## 📊 Fase 8: Sistema de Comparação de Produtos
-- [ ] Criar POP em `architecture/comparison.md`
-- [ ] Implementar Algoritmo de "Cesta Otimizada"
-- [ ] Criar UI de "Comparativo por Mercado" na aba Resumo
-- [ ] Adicionar indicadores de "Preço Médio" e "Melhor Oportunidade"
+- [x] Criar POP em `architecture/comparison.md`
+- [x] Implementar Algoritmo de "Cesta Otimizada"
+- [x] Criar UI de "Comparativo por Mercado" na aba Resumo
+- [x] Adicionar indicadores de "Preço Médio" e "Melhor Oportunidade"
+
+## 🔍 Fase 9: Busca Inteligente
+- [ ] Criar POP em `architecture/search.md`
+- [ ] Implementar Barra de Busca na aba Compras
+- [ ] Criar lógica de filtro em tempo real (Fuzzy Search)
+- [ ] Adicionar estado de "Nenhum resultado encontrado" personalizado
