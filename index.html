@@ -659,6 +659,11 @@
             }
         }
 
+        // --- Helper de Formatação BRL ---
+        function fCurr(v) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+        }
+
         // --- Máscara Monetária (estilo caixa de supermercado) ---
         function maskCurrency(input) {
             let v = input.value.replace(/\D/g, '');
@@ -692,8 +697,8 @@
             const remaining = state.budget - gastoTotal;
             const pct = state.budget > 0 ? Math.min(100, (gastoTotal / state.budget) * 100) : 0;
             
-            document.getElementById('budget-value').innerText = `R$ ${state.budget.toFixed(2)}`;
-            document.getElementById('budget-remaining').innerText = `R$ ${remaining.toFixed(2)} restantes`;
+            document.getElementById('budget-value').innerText = fCurr(state.budget);
+            document.getElementById('budget-remaining').innerText = `${fCurr(remaining)} restantes`;
             document.getElementById('progress-pct').innerText = `${Math.round(pct)}%`;
             
             // Update Ring
@@ -911,25 +916,27 @@
                         <div class="product-info">
                             <div class="product-header">
                                 <span class="product-name">${p.nome}</span>
-                                <span style="font-weight: 800; color: var(--accent);">R$ ${p.preco.toFixed(2)}</span>
+                                <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
                             </div>
                             <div class="product-meta">${p.marca} • ${state.markets[p.mercado_id]}</div>
                             
                             <div class="price-compare">
-                                ${state.markets.map((m, i) => {
+                                ${brothers.length > 1 ? state.markets.map((m, i) => {
                                     const bp = brothers.find(b => b.mercado_id === i);
                                     if (!bp) return `<div class="price-tag">---</div>`;
                                     let cls = "";
-                                    if (bp.preco === minPrice && brothers.length > 1) cls = "best";
-                                    if (bp.preco === maxPrice && brothers.length > 1) cls = "worst";
-                                    return `<div class="price-tag ${cls}">${bp.preco.toFixed(2)}</div>`;
-                                }).join('')}
+                                    if (bp.preco === minPrice) cls = "best";
+                                    if (bp.preco === maxPrice) cls = "worst";
+                                    // Formata apenas o número para o tag de comparação para economizar espaço
+                                    const fmtP = bp.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                                    return `<div class="price-tag ${cls}">${fmtP}</div>`;
+                                }).join('') : ''}
                             </div>
 
                             ${economy > 0 ? `
                                 <div class="economy-alert">
                                     <i data-lucide="trending-down" size="12"></i>
-                                    Economia: R$ ${economy.toFixed(2)}
+                                    Economia: ${fCurr(economy)}
                                 </div>
                             ` : ''}
 
@@ -967,8 +974,8 @@
 
             document.getElementById('res-total-itens').innerText = state.products.length;
             document.getElementById('res-comprados').innerText = comprados.length;
-            document.getElementById('res-gasto-total').innerText = `R$ ${gastoTotal.toFixed(2)}`;
-            document.getElementById('res-economia').innerText = `R$ ${economiaTotal.toFixed(2)}`;
+            document.getElementById('res-gasto-total').innerText = fCurr(gastoTotal);
+            document.getElementById('res-economia').innerText = fCurr(economiaTotal);
             
             renderRanking(grouped);
         }
@@ -983,7 +990,7 @@
                             <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
                             <div style="font-size: 11px; color: var(--success);">Melhor em: ${state.markets[best.mercado_id]}</div>
                         </div>
-                        <div style="font-weight: 800;">R$ ${best.preco.toFixed(2)}</div>
+                        <div style="font-weight: 800;">${fCurr(best.preco)}</div>
                     </div>
                 `;
             }).join('');
