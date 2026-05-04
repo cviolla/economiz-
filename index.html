@@ -799,10 +799,10 @@
         let state = {
             budget: 0,
             markets: [
-                {name: "Mercado 1", lat: null, lon: null},
-                {name: "Mercado 2", lat: null, lon: null},
-                {name: "Mercado 3", lat: null, lon: null},
-                {name: "Mercado 4", lat: null, lon: null}
+                {name: "", lat: null, lon: null},
+                {name: "", lat: null, lon: null},
+                {name: "", lat: null, lon: null},
+                {name: "", lat: null, lon: null}
             ],
             products: [],
             isScannerActive: false,
@@ -917,8 +917,8 @@
                     <div style="display: flex; gap: 12px; align-items: center; background: rgba(0,230,118,0.05); padding: 12px; border-radius: 15px; border: 1px solid rgba(0,230,118,0.1);">
                         <img src="${p.imagem_url}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
                         <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 13px;">${p.nome}</div>
-                            <div style="font-size: 11px; color: var(--success);">Economizou ${fCurr(p.economy)}</div>
+                             <div style="font-weight: 600; font-size: 13px;">${e(p.nome)}</div>
+                             <div style="font-size: 11px; color: var(--success);">Economizou ${fCurr(p.economy)}</div>
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 10px; color: var(--text-dim);">Pago</div>
@@ -932,10 +932,20 @@
         }
 
         function loadState() {
-            const saved = localStorage.getItem('ecozomiz_state');
+            // Migração: Verifica chave antiga com erro de digitação
+            const oldKey = 'ecozomiz_state';
+            const newKey = 'economiz_state';
+            
+            let saved = localStorage.getItem(newKey);
+            if (!saved && localStorage.getItem(oldKey)) {
+                saved = localStorage.getItem(oldKey);
+                localStorage.setItem(newKey, saved);
+                localStorage.removeItem(oldKey);
+                console.log('Dados migrados para nova chave.');
+            }
+
             if (saved) {
                 state = {...state, ...JSON.parse(saved)};
-                // Aplica o modo de visualização salvo
                 setTimeout(() => setViewMode(state.viewMode || 'normal'), 100);
             }
         }
@@ -956,7 +966,7 @@
         }
 
         function persist() {
-            localStorage.setItem('ecozomiz_state', JSON.stringify(state));
+            localStorage.setItem('economiz_state', JSON.stringify(state));
             if (db) {
                 // Background sync logic placeholder
             }
@@ -965,6 +975,13 @@
         // --- Helper de Formatação BRL ---
         function fCurr(v) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+        }
+
+        // --- Helper de Escape HTML (XSS Protection) ---
+        function e(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         // --- Máscara Monetária (estilo caixa de supermercado) ---
@@ -1302,6 +1319,7 @@
         }
 
         function rejectProduct(id) {
+            if (!confirm("Tem certeza que deseja remover este produto da lista?")) return;
             state.products = state.products.filter(x => x.id !== id);
             persist();
             renderProducts();
@@ -1355,10 +1373,10 @@
                     <div class="product-card" style="${p.comprado ? 'opacity: 0.6; border-color: var(--success);' : ''}">
                         <img src="${p.imagem_url}" class="product-img">
                         <div class="product-info">
-                            <div class="product-header">
-                                <span class="product-name">${p.nome}</span>
-                                <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
-                            </div>
+                             <div class="product-header">
+                                 <span class="product-name">${e(p.nome)}</span>
+                                 <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
+                             </div>
                             <div class="product-meta">
                                 ${p.marca} • ${state.markets[p.mercado_id]?.name || state.markets[p.mercado_id]}
                                 ${p.comprado && p.data_compra ? `<br><span style="font-size: 10px; color: var(--success);">Comprado em: ${new Date(p.data_compra).toLocaleString('pt-BR')}</span>` : ''}
@@ -1492,10 +1510,10 @@
                         <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="tag" size="16" style="color: var(--accent);"></i>
                         </div>
-                        <div>
-                            <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
-                            <div style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
-                        </div>
+                         <div>
+                             <div style="font-weight: bold; font-size: 14px;">${e(best.nome)}</div>
+                             <div style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
+                         </div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-weight: 800; font-size: 16px;">${fCurr(best.preco)}</div>
