@@ -42,4 +42,11 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [ ] Definir tokens de estilo para Normal, Compacto e Supercompacto
 - [ ] Implementar Switcher de visualização no Header da aba Compras
 - [ ] Adaptar função `renderProducts` para os 3 modos
-- [ ] Persistir escolha do usuário no `localStorage`
+- [ ] 7.5 Persistir escolha do usuário no `localStorage`
+
+## 💎 Fase 8: Experiência Imersiva e Comparação
+- [ ] Criar POP em `architecture/comparison_system.md`
+- [ ] Implementar Visão de Detalhes (Full Screen) ao clicar no card
+- [ ] Desenvolver Lógica de Comparação Automática (Inter-mercados)
+- [ ] Adicionar Gráfico de Histórico de Preços (Se possível via Sparklines)
+- [ ] Implementar sistema de "Favoritos" ou "Lista de Comparação"

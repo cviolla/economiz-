@@ -433,6 +433,31 @@
             padding: 25px;
             border: 1px solid var(--border);
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .modal-full {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -652,7 +677,20 @@
         </div>
     </div>
 
-    <script>
+    <!-- Modal Detalhes (Full Screen) -->
+    <div id="modal-details" class="modal-full">
+        <div class="details-header">
+            <button class="btn-reject" style="width: auto; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 50%;" onclick="closeModalFull()">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <h2 style="font-size: 18px; margin: 0;">Detalhes do Item</h2>
+            <div style="width: 40px;"></div> <!-- Spacer -->
+        </div>
+        
+        <div id="details-content">
+            <!-- Conteúdo dinâmico via JS -->
+        </div>
+    </div>
         // --- Configuração Supabase ---
         const SUPABASE_URL = 'https://qosjdxonwikshzinfjmg.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvc2pkeG9ud2lrc2h6aW5mam1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NzM2OTgsImV4cCI6MjA5MzQ0OTY5OH0.DSAeUtFXHq-59cjb0ilWlEkt3uv4GnMsVMhDsyL7kK4';
@@ -703,7 +741,7 @@
             display: "standalone",
             background_color: "#0F0F12",
             theme_color: "#FFCC00",
-            icons: [{ src: "https://via.placeholder.com/192x192/FFCC00/000000?text=E", sizes: "192x192", type: "image/png" }]
+            icons: [{ src: "logo.png", sizes: "192x192", type: "image/png" }]
         };
         const stringManifest = JSON.stringify(manifest);
         const blob = new Blob([stringManifest], {type: 'application/json'});
@@ -1092,11 +1130,10 @@
                 const brothers = grouped[p.codigo_barras];
                 const minPrice = Math.min(...brothers.map(b => b.preco));
                 const maxPrice = Math.max(...brothers.map(b => b.preco));
-                const economy = maxPrice - p.preco;
 
                 return `
-                    <div class="product-card" style="${p.comprado ? 'opacity: 0.6; border-color: var(--success);' : ''}">
-                        <img src="${p.imagem_url}" class="product-img">
+                    <div class="product-card" onclick="showProductDetails('${p.id}')">
+                        <img src="${p.imagem_url || 'https://via.placeholder.com/150'}" class="product-img" alt="${p.nome}">
                         <div class="product-info">
                             <div class="product-header">
                                 <span class="product-name">${p.nome}</span>
@@ -1109,27 +1146,18 @@
                             
                             <div class="price-compare">
                                 ${brothers.length > 1 ? state.markets.map((m, i) => {
-                                    const bp = brothers.find(b => b.mercado_id === i);
-                                    if (!bp) return `<div class="price-tag">---</div>`;
-                                    let cls = "";
-                                    if (bp.preco === minPrice) cls = "best";
-                                    if (bp.preco === maxPrice) cls = "worst";
-                                    // Formata apenas o número para o tag de comparação para economizar espaço
-                                    const fmtP = bp.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-                                    return `<div class="price-tag ${cls}">${fmtP}</div>`;
+                                    const variant = brothers.find(b => b.mercado_id === i);
+                                    if (!variant) return '';
+                                    const isBest = variant.preco === minPrice;
+                                    const isWorst = variant.preco === maxPrice && variant.preco !== minPrice;
+                                    return `<div class="price-tag ${isBest ? 'best' : ''} ${isWorst ? 'worst' : ''}">${m.name || m}: ${fCurr(variant.preco)}</div>`;
                                 }).join('') : ''}
                             </div>
-
-                            ${economy > 0 ? `
-                                <div class="economy-alert">
-                                    <i data-lucide="trending-down" size="12"></i>
-                                    Economia: ${fCurr(economy)}
-                                </div>
-                            ` : ''}
-
-                            <div class="actions">
+                            
+                            <div class="actions" onclick="event.stopPropagation()">
                                 <button class="btn btn-buy" onclick="buyProduct('${p.id}')">
-                                    <i data-lucide="${p.comprado ? 'undo' : 'check'}"></i> ${p.comprado ? 'Desfazer' : 'Comprar'}
+                                    <i data-lucide="${p.comprado ? 'check-circle' : 'circle'}"></i> 
+                                    ${p.comprado ? 'Comprado' : 'Comprar'}
                                 </button>
                                 <button class="btn btn-reject" onclick="rejectProduct('${p.id}')">
                                     <i data-lucide="trash-2"></i>
@@ -1185,8 +1213,59 @@
         }
 
         // --- Modals ---
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+        function showProductDetails(id) {
+            const p = state.products.find(x => x.id === id);
+            if (!p) return;
+
+            const brothers = state.products.filter(b => b.codigo_barras === p.codigo_barras);
+            const content = document.getElementById('details-content');
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="${p.imagem_url || 'https://via.placeholder.com/300'}" style="width: 100%; max-width: 250px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                </div>
+                
+                <h1 style="font-size: 24px; margin-bottom: 5px;">${p.nome}</h1>
+                <p style="color: var(--text-dim); margin-bottom: 20px;">${p.marca} | EAN: ${p.codigo_barras}</p>
+                
+                <div class="summary-box" style="margin-bottom: 20px; border-color: var(--accent);">
+                    <h4 style="color: var(--accent);">Comparação de Preços</h4>
+                    <div style="margin-top: 15px;">
+                        ${state.markets.map((m, i) => {
+                            const variant = brothers.find(b => b.mercado_id === i);
+                            return `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                                    <span style="font-size: 14px;">${m.name || m}</span>
+                                    <span style="font-weight: 800; color: ${variant ? 'var(--text-main)' : 'var(--text-dim)'};">
+                                        ${variant ? fCurr(variant.preco) : 'Não cadastrado'}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                ${p.comprado ? `
+                    <div class="economy-alert" style="font-size: 14px; padding: 15px; background: rgba(0,230,118,0.1); border-radius: 12px;">
+                        <i data-lucide="info"></i>
+                        Item comprado em ${new Date(p.data_compra).toLocaleString('pt-BR')}
+                    </div>
+                ` : ''}
+
+                <div class="actions" style="margin-top: 30px; gap: 15px;">
+                    <button class="btn btn-buy" style="height: 50px; font-size: 14px;" onclick="buyProduct('${p.id}'); closeModalFull();">
+                        <i data-lucide="${p.comprado ? 'check-circle' : 'circle'}"></i>
+                        ${p.comprado ? 'Marcar como não comprado' : 'Confirmar Compra'}
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modal-details').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeModalFull() {
+            document.getElementById('modal-details').style.display = 'none';
         }
 
         document.getElementById('btn-set-budget').onclick = () => {
