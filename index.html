@@ -581,6 +581,79 @@
             text-transform: uppercase;
         }
 
+        /* --- Image Capture --- */
+        .img-capture-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .img-capture-wrapper .product-img {
+            width: 100%;
+            height: 100%;
+        }
+        .img-capture-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .img-capture-wrapper:hover .img-capture-overlay,
+        .img-capture-wrapper:active .img-capture-overlay,
+        .img-capture-wrapper.no-image .img-capture-overlay {
+            opacity: 1;
+        }
+        .img-capture-overlay i {
+            color: var(--accent);
+        }
+        .img-capture-overlay span {
+            font-size: 8px;
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        /* Card image camera icon */
+        .card-img-capture {
+            position: relative;
+            cursor: pointer;
+        }
+        .card-img-capture .card-camera-badge {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+        .card-img-capture:active .card-camera-badge {
+            transform: scale(0.9);
+        }
+        .card-camera-badge i {
+            color: #000;
+        }
+        .product-img.placeholder-img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.15);
+        }
+
         /* --- Utilities --- */
         .hide { display: none !important; }
     </style>
@@ -670,6 +743,8 @@
 
             <!-- Photo Scanner -->
             <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;" onchange="scanFromPhoto(event)">
+            <!-- Input oculto para captura de foto do produto -->
+            <input type="file" id="product-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handleProductPhoto(event)">
 
             <!-- Manual Entry -->
             <div id="manual-entry" style="display:none; margin-bottom: 15px;">
@@ -761,7 +836,16 @@
             <h2 style="margin-bottom: 20px;">Detalhes do Produto</h2>
             <div id="product-preview" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
                 <div style="display: flex; gap: 15px; align-items: center;">
-                    <img id="modal-img" src="" class="product-img" alt="" onerror="this.src='https://via.placeholder.com/150/222/FFF?text=Produto'">
+                    <div class="img-capture-wrapper" id="modal-img-wrapper" onclick="triggerProductPhoto('modal')">
+                        <img id="modal-img" src="" class="product-img" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="product-img placeholder-img" id="modal-img-placeholder" style="display:none;">
+                            <i data-lucide="image-plus" size="24" style="color: var(--text-dim); opacity: 0.4;"></i>
+                        </div>
+                        <div class="img-capture-overlay">
+                            <i data-lucide="camera" size="18"></i>
+                            <span>Foto</span>
+                        </div>
+                    </div>
                     <div style="flex: 1;">
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label>Nome do Produto</label>
@@ -1387,8 +1471,24 @@
         function openProductModal() {
             document.getElementById('modal-input-name').value = state.currentScanned.nome;
             document.getElementById('modal-input-brand').value = state.currentScanned.marca;
-            document.getElementById('modal-img').src = state.currentScanned.imagem_url || 'https://via.placeholder.com/150/222/FFF?text=Produto';
+            
+            const modalImg = document.getElementById('modal-img');
+            const modalPlaceholder = document.getElementById('modal-img-placeholder');
+            const wrapper = document.getElementById('modal-img-wrapper');
+            
+            if (state.currentScanned.imagem_url) {
+                modalImg.src = state.currentScanned.imagem_url;
+                modalImg.style.display = 'block';
+                modalPlaceholder.style.display = 'none';
+                wrapper.classList.remove('no-image');
+            } else {
+                modalImg.style.display = 'none';
+                modalPlaceholder.style.display = 'flex';
+                wrapper.classList.add('no-image');
+            }
+            
             document.getElementById('modal-product').style.display = 'flex';
+            lucide.createIcons();
             
             // Foco no nome se estiver vazio
             if (!state.currentScanned.nome) {
@@ -1490,7 +1590,13 @@
 
                 return `
                     <div class="product-card" style="${p.comprado ? 'opacity: 0.6; border-color: var(--success);' : ''}">
-                        <img src="${p.imagem_url}" class="product-img">
+                        <div class="card-img-capture" onclick="triggerProductPhoto('card', '${p.id}')">
+                            ${p.imagem_url 
+                                ? `<img src="${p.imagem_url}" class="product-img" onerror="this.outerHTML='<div class=\'product-img placeholder-img\'><i data-lucide=\'image-off\' size=\'20\' style=\'color: var(--text-dim); opacity: 0.3;\'></i></div>'">`
+                                : `<div class="product-img placeholder-img"><i data-lucide="camera" size="20" style="color: var(--text-dim); opacity: 0.4;"></i></div>`
+                            }
+                            ${!p.imagem_url ? `<div class="card-camera-badge"><i data-lucide="camera" size="12"></i></div>` : ''}
+                        </div>
                         <div class="product-info">
                              <div class="product-header">
                                  <span class="product-name">${e(p.nome)}</span>
@@ -1641,6 +1747,87 @@
                 </div>
             `).join('');
             lucide.createIcons();
+        }
+
+        // --- Image Capture Logic ---
+        let _photoTarget = null; // { type: 'modal' } ou { type: 'card', productId: '...' }
+
+        function triggerProductPhoto(context, productId) {
+            if (context === 'modal') {
+                _photoTarget = { type: 'modal' };
+            } else {
+                _photoTarget = { type: 'card', productId };
+            }
+            document.getElementById('product-photo-input').click();
+        }
+
+        function handleProductPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            resizeAndCompressImage(file, 400, 0.7, (base64) => {
+                if (_photoTarget?.type === 'modal') {
+                    // Atualiza a imagem no modal aberto
+                    const modalImg = document.getElementById('modal-img');
+                    const placeholder = document.getElementById('modal-img-placeholder');
+                    const wrapper = document.getElementById('modal-img-wrapper');
+                    
+                    modalImg.src = base64;
+                    modalImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    wrapper.classList.remove('no-image');
+                    
+                    // Salva no state temporário
+                    if (state.currentScanned) {
+                        state.currentScanned.imagem_url = base64;
+                    }
+                } else if (_photoTarget?.type === 'card') {
+                    // Atualiza produto já salvo
+                    const prod = state.products.find(p => p.id === _photoTarget.productId);
+                    if (prod) {
+                        prod.imagem_url = base64;
+                        try {
+                            persist();
+                        } catch(e) {
+                            alert('Armazenamento cheio! Não foi possível salvar a imagem. Tente limpar produtos antigos.');
+                            prod.imagem_url = '';
+                            return;
+                        }
+                        renderProducts();
+                    }
+                }
+                _photoTarget = null;
+            });
+            event.target.value = '';
+        }
+
+        function resizeAndCompressImage(file, maxSize, quality, callback) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width;
+                    let h = img.height;
+
+                    // Redimensiona mantendo proporção
+                    if (w > h) {
+                        if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+                    } else {
+                        if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+                    }
+
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    const base64 = canvas.toDataURL('image/jpeg', quality);
+                    callback(base64);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         // --- Modals ---
