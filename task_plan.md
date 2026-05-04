@@ -11,26 +11,27 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Inicializar `gemini.md` (Constituição)
 
 ## 🏗️ Fase 1: V - Visão
-- [x] Handshake de Descoberta realizado (via prompt inicial)
+- [x] Handshake de Descoberta realizado
 - [x] Definir JSON Data Schema em `gemini.md`
-- [ ] Pesquisar melhores práticas para QuaggaJS em dispositivos móveis
+- [x] Pesquisar melhores práticas para QuaggaJS
 
 ## ⚡ Fase 2: L - Link
-- [ ] Validar API Open Food Facts via `tools/api_handshake.py`
-- [ ] Validar inicialização do Supabase Client
-- [ ] Testar acesso à câmera no ambiente local
+- [x] Validar API Open Food Facts via `tools/api_handshake.js`
+- [x] Validar inicialização do Supabase Client
+- [x] Testar acesso à câmera no ambiente local
 
 ## ⚙️ Fase 3: A - Arquitetura
-- [ ] Criar POP em `architecture/scanner.md` (Lógica de detecção e consulta API)
-- [ ] Criar POP em `architecture/sync.md` (Estratégia Cache-First com Supabase)
-- [ ] Criar POP em `architecture/budget.md` (Cálculos de economia e progresso)
+- [x] Criar POP em `architecture/scanner.md`
+- [x] Criar POP em `architecture/sync.md`
+- [x] Criar POP em `architecture/budget.md`
 
 ## ✨ Fase 4: E - Estilo
-- [ ] Implementar Layout Base (Dark Mode + Bento Grid)
-- [ ] Implementar Anel de Progresso SVG Dinâmico
-- [ ] Aplicar Glassmorphism nos cards de produtos
+- [x] Implementar Layout Base (Dark Mode + Bento Grid)
+- [x] Implementar Anel de Progresso SVG Dinâmico
+- [x] Aplicar Glassmorphism nos cards de produtos
 
 ## 🛰️ Fase 5: G - Gatilho
-- [ ] Gerar `manifest.json` e Service Worker
-- [ ] Script de migração SQL para o Supabase
-- [ ] Empacotamento final em arquivo único HTML
+- [x] Gerar `manifest.json` e Service Worker
+- [x] Script de migração SQL para o Supabase
+- [x] Empacotamento final em arquivo único HTML
+- [x] Push para o GitHub e Deploy

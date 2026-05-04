@@ -564,10 +564,14 @@
         // --- Configuração Supabase ---
         const SUPABASE_URL = 'https://qosjdxonwikshzinfjmg.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvc2pkeG9ud2lrc2h6aW5mam1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NzM2OTgsImV4cCI6MjA5MzQ0OTY5OH0.DSAeUtFXHq-59cjb0ilWlEkt3uv4GnMsVMhDsyL7kK4';
-        let supabase = null;
+        
+        let db = null;
         try {
-            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) { console.log('Erro ao inicializar Supabase.'); }
+            // O objeto global da biblioteca é 'supabase' (minúsculo)
+            if (typeof supabase !== 'undefined') {
+                db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) { console.error('Erro Supabase:', e); }
 
         // --- State Management ---
         let state = {
@@ -626,7 +630,7 @@
 
         function persist() {
             localStorage.setItem('ecozomiz_state', JSON.stringify(state));
-            if (supabase) {
+            if (db) {
                 // Background sync logic placeholder
             }
         }
