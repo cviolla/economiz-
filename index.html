@@ -16,6 +16,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Icons -->
+    <!-- Modal: Detalhes de Gasto por Mercado -->
+    <div id="modal-drill-spending" class="modal">
+        <div class="modal-content">
+            <h3>Gasto por Mercado</h3>
+            <div id="drill-spending-list" style="margin-top: 20px;">
+                <!-- Injetado via JS -->
+            </div>
+            <button class="btn btn-buy" style="margin-top: 20px;" onclick="closeModal('modal-drill-spending')">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes de Economia (Top Heróis) -->
+    <div id="modal-drill-savings" class="modal">
+        <div class="modal-content">
+            <h3>Top Economias</h3>
+            <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 15px;">Produtos com maior diferença de preço pago vs. máximo encontrado.</p>
+            <div id="drill-savings-list" style="margin-top: 10px;">
+                <!-- Injetado via JS -->
+            </div>
+            <button class="btn btn-buy" style="margin-top: 20px;" onclick="closeModal('modal-drill-savings')">Fechar</button>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Libraries -->
@@ -471,6 +494,19 @@
             border-radius: var(--radius);
             padding: 20px;
             border: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .summary-box:active { transform: scale(0.96); background: rgba(255,255,255,0.08); }
+        .summary-box::after {
+            content: "•";
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: var(--accent);
+            opacity: 0.3;
+            font-size: 20px;
         }
 
         .summary-box h4 { font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
@@ -598,19 +634,19 @@
         <section id="resumo" class="section">
             <h3 style="margin-bottom: 20px;">Relatório de Gastos</h3>
             <div class="summary-grid">
-                <div class="summary-box">
+                <div class="summary-box" onclick="showSection('compras')">
                     <h4>Total Itens</h4>
                     <div class="value" id="res-total-itens">0</div>
                 </div>
-                <div class="summary-box">
+                <div class="summary-box" onclick="showSection('compras')">
                     <h4>Comprados</h4>
                     <div class="value" id="res-comprados">0</div>
                 </div>
-                <div class="summary-box">
+                <div class="summary-box" onclick="showSpendingDetails()">
                     <h4>Gasto Total</h4>
                     <div class="value" id="res-gasto-total">R$ 0,00</div>
                 </div>
-                <div class="summary-box">
+                <div class="summary-box" onclick="showSavingsDetails()">
                     <h4>Economia</h4>
                     <div class="value" id="res-economia" style="color: var(--success);">R$ 0,00</div>
                 </div>
@@ -662,6 +698,32 @@
                 <input type="tel" id="budget-input" class="form-control" placeholder="R$ 0,00" oninput="maskCurrency(this)" style="font-size: 22px; font-weight: 800; letter-spacing: 1px;">
             </div>
             <button class="btn btn-buy" onclick="saveBudget()">Salvar</button>
+        </div>
+    </div>
+
+    <!-- Modais de Detalhamento (Drill Down) -->
+    <div id="modal-drill-spending" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="bar-chart-3" style="color: var(--accent);"></i> Gasto por Mercado
+            </h2>
+            <div id="drill-spending-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Conteúdo via JS -->
+            </div>
+            <button class="btn btn-buy" style="margin-top: 25px;" onclick="closeModal('modal-drill-spending')">Entendido</button>
+        </div>
+    </div>
+
+    <div id="modal-drill-savings" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="trending-down" style="color: var(--success);"></i> Top Economias
+            </h2>
+            <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 15px;">Diferença entre o preço pago e o mais caro cadastrado para o mesmo item.</p>
+            <div id="drill-savings-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Conteúdo via JS -->
+            </div>
+            <button class="btn btn-buy" style="margin-top: 25px;" onclick="closeModal('modal-drill-savings')">Incrível!</button>
         </div>
     </div>
 
@@ -739,11 +801,91 @@
         function showSection(id, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
             document.getElementById(id).classList.add('active');
-            el.classList.add('active');
+            
+            // Se o el não for passado (clique via Drill Down), busca o nav-item correspondente
+            const targetNav = el || document.querySelector(`.nav-item[onclick*="'${id}'"]`);
+            if (targetNav) targetNav.classList.add('active');
             
             if (id !== 'compras' && state.isScannerActive) toggleScanner();
             if (id === 'resumo') updateSummary();
+
+            // Feedback visual de scroll ao trocar de aba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Drill Down Functions ---
+        function showSpendingDetails() {
+            const list = document.getElementById('drill-spending-list');
+            const totals = state.markets.map((m, i) => {
+                const spent = state.products
+                    .filter(p => p.mercado_id === i && p.comprado)
+                    .reduce((acc, p) => acc + p.preco, 0);
+                return { name: m.name || `Mercado ${i+1}`, spent };
+            });
+
+            const totalGeral = totals.reduce((acc, t) => acc + t.spent, 0);
+
+            list.innerHTML = totals.map(t => {
+                const pct = totalGeral > 0 ? (t.spent / totalGeral * 100).toFixed(0) : 0;
+                return `
+                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600;">${t.name}</span>
+                            <span style="font-weight: 800; color: var(--accent);">${fCurr(t.spent)}</span>
+                        </div>
+                        <div style="margin-top: 8px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${pct}%; height: 100%; background: var(--accent);"></div>
+                        </div>
+                        <div style="text-align: right; font-size: 10px; color: var(--text-dim); margin-top: 4px;">${pct}% do gasto total</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('modal-drill-spending').style.display = 'flex';
+        }
+
+        function showSavingsDetails() {
+            const list = document.getElementById('drill-savings-list');
+            
+            const grouped = {};
+            state.products.forEach(p => {
+                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
+                grouped[p.codigo_barras].push(p);
+            });
+
+            const itemsWithSavings = state.products
+                .filter(p => p.comprado)
+                .map(p => {
+                    const brothers = grouped[p.codigo_barras];
+                    const maxP = Math.max(...brothers.map(b => b.preco));
+                    const economy = maxP - p.preco;
+                    return { ...p, economy };
+                })
+                .filter(p => p.economy > 0)
+                .sort((a, b) => b.economy - a.economy)
+                .slice(0, 5);
+
+            if (itemsWithSavings.length === 0) {
+                list.innerHTML = `<p style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhuma economia detectada ainda. Cadastre o mesmo produto em diferentes mercados para comparar!</p>`;
+            } else {
+                list.innerHTML = itemsWithSavings.map(p => `
+                    <div style="display: flex; gap: 12px; align-items: center; background: rgba(0,230,118,0.05); padding: 12px; border-radius: 15px; border: 1px solid rgba(0,230,118,0.1);">
+                        <img src="${p.imagem_url}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 13px;">${p.nome}</div>
+                            <div style="font-size: 11px; color: var(--success);">Economizou ${fCurr(p.economy)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 10px; color: var(--text-dim);">Pago</div>
+                            <div style="font-weight: 800;">${fCurr(p.preco)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('modal-drill-savings').style.display = 'flex';
         }
 
         function loadState() {

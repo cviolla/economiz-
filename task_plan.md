@@ -51,7 +51,13 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Adicionar indicadores de "Preço Médio" e "Melhor Oportunidade"
 
 ## 🔍 Fase 9: Busca Inteligente
-- [ ] Criar POP em `architecture/search.md`
-- [ ] Implementar Barra de Busca na aba Compras
-- [ ] Criar lógica de filtro em tempo real (Fuzzy Search)
-- [ ] Adicionar estado de "Nenhum resultado encontrado" personalizado
+- [x] Criar POP em `architecture/search.md`
+- [x] Implementar Barra de Busca na aba Compras
+- [x] Criar lógica de filtro em tempo real (Fuzzy Search)
+- [x] Adicionar estado de "Nenhum resultado encontrado" personalizado
+
+## 📈 Fase 10: Detalhamento Interativo (Drill Down)
+- [x] Criar POP em `architecture/drill_down.md`
+- [x] Implementar Modal de "Gasto por Mercado" ao clicar em Gasto Total
+- [x] Implementar Modal de "Top Economias" ao clicar em Economia
+- [x] Adicionar atalhos de navegação nos cards de Itens e Comprados
