@@ -1,4 +1,4 @@
-# Task Plan - Economiz+
+# Task Plan - economiz+ | Roadmap de Evolução
 
 ## 🎯 Objetivo
 Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.

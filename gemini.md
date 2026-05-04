@@ -1,4 +1,4 @@
-# Gemini - A Constituição do Projeto Economiz+
+# Gemini - A Constituição do Projeto economiz+
 
 ## 📜 Regras Comportamentais
 - Seguir estritamente o protocolo **V.L.A.E.G.**
