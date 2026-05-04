@@ -605,10 +605,15 @@
                 <!-- Injetado via JS -->
             </div>
 
-            <!-- Configurações (Linha 1, Col 3) -->
-            <button class="btn-reject" style="grid-row: 1; grid-column: 3; background: none; border: none; color: var(--accent); justify-self: flex-end;" id="btn-set-budget">
-                <i data-lucide="settings"></i>
-            </button>
+            <!-- Ações (Linha 1, Col 3) -->
+            <div style="grid-row: 1; grid-column: 3; justify-self: flex-end; display: flex; gap: 10px; align-items: center;">
+                <button class="btn-reject hide" style="background: none; border: none; color: var(--accent);" id="btn-install-pwa" title="Instalar App">
+                    <i data-lucide="download-cloud"></i>
+                </button>
+                <button class="btn-reject" style="background: none; border: none; color: var(--accent);" id="btn-set-budget">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
         </header>
 
         <div class="budget-card">
@@ -674,6 +679,12 @@
                         <input type="tel" inputmode="numeric" id="manual-barcode" class="form-control" placeholder="Ex: 7891000053508">
                         <button class="btn btn-buy" style="width: auto; padding: 0 15px;" onclick="searchManualBarcode()">Buscar</button>
                     </div>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">ou</p>
+                    <button class="btn" style="width: 100%; background: rgba(255,255,255,0.05); color: var(--accent); border: 1px dashed var(--accent);" onclick="startFullManualEntry()">
+                        <i data-lucide="plus-circle" size="14"></i> Cadastrar Sem Código
+                    </button>
                 </div>
             </div>
 
@@ -747,12 +758,20 @@
     <!-- Modals -->
     <div id="modal-product" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">Novo Produto</h2>
-            <div id="product-preview" style="display: flex; gap: 15px; margin-bottom: 20px;">
-                <img id="modal-img" src="" class="product-img" alt="">
-                <div>
-                    <p id="modal-name" style="font-weight: bold;"></p>
-                    <p id="modal-brand" style="font-size: 12px; color: var(--text-dim);"></p>
+            <h2 style="margin-bottom: 20px;">Detalhes do Produto</h2>
+            <div id="product-preview" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <img id="modal-img" src="" class="product-img" alt="" onerror="this.src='https://via.placeholder.com/150/222/FFF?text=Produto'">
+                    <div style="flex: 1;">
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <label>Nome do Produto</label>
+                            <input type="text" id="modal-input-name" class="form-control" placeholder="Ex: Arroz Integral 1kg">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Marca</label>
+                            <input type="text" id="modal-input-brand" class="form-control" placeholder="Ex: Tio João">
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="form-group">
@@ -864,6 +883,34 @@
                     .then(reg => console.log('economiz+ SW registrado!', reg))
                     .catch(err => console.log('Erro ao registrar SW:', err));
             }
+
+            // Lógica de Instalação PWA
+            let deferredPrompt;
+            const installBtn = document.getElementById('btn-install-pwa');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBtn.classList.remove('hide');
+            });
+
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('Usuário aceitou a instalação');
+                        installBtn.classList.add('hide');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+
+            window.addEventListener('appinstalled', () => {
+                installBtn.classList.add('hide');
+                deferredPrompt = null;
+                console.log('economiz+ instalado com sucesso!');
+            });
         });
 
         // --- PWA Helper: Manifest dinâmico ---
@@ -1327,15 +1374,15 @@
                 if (data.status === 1) {
                     state.currentScanned = {
                         codigo_barras: code,
-                        nome: data.product.product_name || "Produto Desconhecido",
-                        marca: data.product.brands || "Marca Indisponível",
+                        nome: data.product.product_name || "",
+                        marca: data.product.brands || "",
                         imagem_url: data.product.image_url || ""
                     };
                 } else {
                     state.currentScanned = {
                         codigo_barras: code,
-                        nome: "Novo Produto",
-                        marca: "Manual",
+                        nome: "",
+                        marca: "",
                         imagem_url: ""
                     };
                 }
@@ -1343,29 +1390,50 @@
             } catch(e) {
                 state.currentScanned = {
                     codigo_barras: code,
-                    nome: "Novo Produto (Offline)",
-                    marca: "Manual",
+                    nome: "",
+                    marca: "",
                     imagem_url: ""
                 };
                 openProductModal();
             }
         }
 
+        function startFullManualEntry() {
+            document.getElementById('manual-entry').style.display = 'none';
+            state.currentScanned = {
+                codigo_barras: 'MANUAL-' + Date.now(),
+                nome: "",
+                marca: "",
+                imagem_url: ""
+            };
+            openProductModal();
+        }
+
         function openProductModal() {
-            document.getElementById('modal-name').innerText = state.currentScanned.nome;
-            document.getElementById('modal-brand').innerText = state.currentScanned.marca;
-            document.getElementById('modal-img').src = state.currentScanned.imagem_url;
+            document.getElementById('modal-input-name').value = state.currentScanned.nome;
+            document.getElementById('modal-input-brand').value = state.currentScanned.marca;
+            document.getElementById('modal-img').src = state.currentScanned.imagem_url || 'https://via.placeholder.com/150/222/FFF?text=Produto';
             document.getElementById('modal-product').style.display = 'flex';
+            
+            // Foco no nome se estiver vazio
+            if (!state.currentScanned.nome) {
+                setTimeout(() => document.getElementById('modal-input-name').focus(), 300);
+            }
         }
 
         function saveNewProduct() {
+            const name = document.getElementById('modal-input-name').value.trim();
+            const brand = document.getElementById('modal-input-brand').value.trim();
             const marketId = parseInt(document.getElementById('modal-market').value);
             const price = parseCurrency(document.getElementById('modal-price').value);
             
+            if (!name) { alert("Informe o nome do produto!"); return; }
             if (price <= 0) { alert("Informe o preço!"); return; }
 
             const newProd = {
                 ...state.currentScanned,
+                nome: name,
+                marca: brand || "Geral",
                 id: Date.now().toString(),
                 mercado_id: marketId,
                 preco: price,
