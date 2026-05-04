@@ -71,7 +71,17 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-y;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-deep);
             color: var(--text-main);
@@ -512,6 +522,39 @@
         .summary-box h4 { font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
         .summary-box .value { font-size: 24px; font-weight: 800; color: var(--accent); }
 
+        /* Estilos para cards de comparativo e ranking */
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        .comparison-card.winner {
+            border-color: var(--success);
+            background: rgba(0, 230, 118, 0.05);
+        }
+        .ranking-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+        }
+        .badge-winner {
+            background: var(--success);
+            color: #000;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
         /* --- Utilities --- */
         .hide { display: none !important; }
     </style>
@@ -524,7 +567,7 @@
                 <div class="brand-logo">
                     <img src="logo.png" alt="Economiz+">
                 </div>
-                <h1 class="brand">Economiz+</h1>
+                <h1 class="brand">economiz+</h1>
             </div>
             <button class="btn-reject" style="background: none; border: none; color: var(--accent);" id="btn-set-budget">
                 <i data-lucide="settings"></i>
@@ -1378,7 +1421,7 @@
             document.getElementById('res-gasto-total').innerText = fCurr(gastoTotal);
             document.getElementById('res-economia').innerText = fCurr(economiaTotal);
             
-            renderRanking(grouped);
+
 
             // --- Comparativo de Cestas ---
             const basketComp = document.getElementById('basket-comparison');
@@ -1407,20 +1450,23 @@
 
             basketComp.innerHTML = marketTotals.map(mt => {
                 const isWinner = mt.total === winner.total && mt.total > 0;
-                const pct = winner.total > 0 ? ((mt.total / winner.total) - 1) * 100 : 0;
+                const diff = mt.total - winner.total;
                 
                 return `
-                    <div class="summary-box" style="padding: 15px; border-left: 4px solid ${isWinner ? 'var(--success)' : 'transparent'};">
+                    <div class="comparison-card ${isWinner ? 'winner' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: bold; font-size: 14px;">${mt.name} ${isWinner ? '🏆' : ''}</div>
-                                <div style="font-size: 11px; color: var(--text-dim);">
-                                    ${mt.missing > 0 ? `*Contém ${mt.missing} preços estimados` : 'Todos os preços validados'}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: bold; font-size: 15px;">${mt.name}</span>
+                                    ${isWinner ? '<span class="badge-winner">Melhor Opção</span>' : ''}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+                                    ${mt.missing > 0 ? `<i data-lucide="help-circle" size="10"></i> ${mt.missing} preços estimados` : '<i data-lucide="check-circle" size="10"></i> Todos os preços reais'}
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 800; color: ${isWinner ? 'var(--success)' : 'var(--text-main)'};">${fCurr(mt.total)}</div>
-                                ${!isWinner && mt.total > 0 ? `<div style="font-size: 10px; color: var(--error);">+${pct.toFixed(1)}%</div>` : ''}
+                                <div style="font-weight: 800; font-size: 18px; color: ${isWinner ? 'var(--success)' : 'var(--text-main)'};">${fCurr(mt.total)}</div>
+                                ${!isWinner && mt.total > 0 ? `<div style="font-size: 10px; color: var(--error);">+${fCurr(diff)}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -1441,14 +1487,23 @@
             });
 
             rankingList.innerHTML = uniqueProds.map(best => `
-                <div class="product-card" style="margin-bottom: 8px; padding: 10px;">
-                    <div style="flex: 1;">
-                        <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
-                        <div style="font-size: 11px; color: var(--success);">Melhor em: ${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
+                <div class="ranking-card">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="tag" size="16" style="color: var(--accent);"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
+                            <div style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
+                        </div>
                     </div>
-                    <div style="font-weight: 800;">${fCurr(best.preco)}</div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 800; font-size: 16px;">${fCurr(best.preco)}</div>
+                        <div style="font-size: 9px; color: var(--text-dim);">Menor Preço</div>
+                    </div>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
         // --- Modals ---
