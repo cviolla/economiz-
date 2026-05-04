@@ -60,6 +60,11 @@
             font-family: 'Outfit', sans-serif;
         }
 
+        /* Map & Scanner Styles */
+        #scanner-view { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; }
+        #scanner-reader { width: 100%; max-width: 400px; border-radius: 20px; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); }
+        #map-container { width: 100%; height: 350px; border-radius: 15px; margin-top: 10px; }
+
         /* --- Layout --- */
         .app-container {
             max-width: 500px;
@@ -501,41 +506,8 @@
         <!-- Section: Mercados -->
         <section id="mercados" class="section">
             <h3 style="margin-bottom: 20px;">Meus Mercados</h3>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label style="margin-bottom: 0;">Mercado 1</label>
-                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(0)">
-                        <i data-lucide="map-pin" size="10"></i> Check-in
-                    </button>
-                </div>
-                <input type="text" class="form-control market-input" data-index="0" placeholder="Ex: Pão de Açúcar">
-            </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label style="margin-bottom: 0;">Mercado 2</label>
-                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(1)">
-                        <i data-lucide="map-pin" size="10"></i> Check-in
-                    </button>
-                </div>
-                <input type="text" class="form-control market-input" data-index="1" placeholder="Ex: Carrefour">
-            </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label style="margin-bottom: 0;">Mercado 3</label>
-                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(2)">
-                        <i data-lucide="map-pin" size="10"></i> Check-in
-                    </button>
-                </div>
-                <input type="text" class="form-control market-input" data-index="2" placeholder="Ex: Atacadão">
-            </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label style="margin-bottom: 0;">Mercado 4</label>
-                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(3)">
-                        <i data-lucide="map-pin" size="10"></i> Check-in
-                    </button>
-                </div>
-                <input type="text" class="form-control market-input" data-index="3" placeholder="Ex: Mercado do Bairro">
+            <div id="markets-list-container">
+                <!-- Mercado inputs will be injected here by JS to show spending -->
             </div>
             <button class="btn btn-buy" onclick="saveMarkets()">Salvar Mercados</button>
         </section>
@@ -758,10 +730,27 @@
 
         // --- Market Logic ---
         function renderMarkets() {
-            const inputs = document.querySelectorAll('.market-input');
-            inputs.forEach((input, i) => {
-                input.value = state.markets[i]?.name || state.markets[i] || "";
-            });
+            const container = document.getElementById('markets-list-container');
+            
+            container.innerHTML = state.markets.map((m, i) => {
+                const spent = state.products
+                    .filter(p => p.mercado_id === i && p.comprado)
+                    .reduce((acc, p) => acc + p.preco, 0);
+
+                return `
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="margin-bottom: 0; font-size: 11px; text-transform: uppercase; color: var(--text-dim);">
+                                Mercado ${i + 1} • <span style="color: var(--accent); font-weight: 800;">${fCurr(spent)}</span>
+                            </label>
+                            <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(${i})">
+                                <i data-lucide="map-pin" size="10"></i> Check-in
+                            </button>
+                        </div>
+                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || m}" placeholder="Nome do mercado">
+                    </div>
+                `;
+            }).join('');
             
             const select = document.getElementById('modal-market');
             select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m.name || m}</option>`).join('');
@@ -987,8 +976,12 @@
             const p = state.products.find(x => x.id === id);
             if (p) {
                 p.comprado = !p.comprado;
+                if (p.comprado) {
+                    p.data_compra = new Date().toISOString();
+                }
                 persist();
                 renderProducts();
+                renderMarkets(); // Atualiza os gastos exibidos nos labels
                 updateBudgetUI();
             }
         }
@@ -1029,7 +1022,10 @@
                                 <span class="product-name">${p.nome}</span>
                                 <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
                             </div>
-                            <div class="product-meta">${p.marca} • ${state.markets[p.mercado_id]?.name || state.markets[p.mercado_id]}</div>
+                            <div class="product-meta">
+                                ${p.marca} • ${state.markets[p.mercado_id]?.name || state.markets[p.mercado_id]}
+                                ${p.comprado && p.data_compra ? `<br><span style="font-size: 10px; color: var(--success);">Comprado em: ${new Date(p.data_compra).toLocaleString('pt-BR')}</span>` : ''}
+                            </div>
                             
                             <div class="price-compare">
                                 ${brothers.length > 1 ? state.markets.map((m, i) => {
