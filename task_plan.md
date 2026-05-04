@@ -31,8 +31,15 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Aplicar Glassmorphism nos cards de produtos
 
 ## 🗺️ Fase 6: Check-in Inteligente (Localização)
-- [ ] Criar POP em `architecture/checkin.md`
-- [ ] Atualizar Schema na Constituição (`gemini.md`)
-- [ ] Implementar integração com Leaflet.js e Nominatim API
-- [ ] Adicionar botão de "Check-in" na aba Mercados
-- [ ] Tratar permissões de Geolocalização e Fallback manual
+- [x] Criar POP em `architecture/checkin.md`
+- [x] Atualizar Schema na Constituição (`gemini.md`)
+- [x] Implementar integração com Leaflet.js e Nominatim API
+- [x] Adicionar botão de "Check-in" na aba Mercados
+- [x] Tratar permissões de Geolocalização e Fallback manual
+
+## 🎨 Fase 7: Visualização Adaptativa (Cards)
+- [ ] Criar POP em `architecture/card_views.md`
+- [ ] Definir tokens de estilo para Normal, Compacto e Supercompacto
+- [ ] Implementar Switcher de visualização no Header da aba Compras
+- [ ] Adaptar função `renderProducts` para os 3 modos
+- [ ] Persistir escolha do usuário no `localStorage`

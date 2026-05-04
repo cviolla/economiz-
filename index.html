@@ -216,6 +216,42 @@
             font-weight: 600;
         }
 
+        /* --- View Switcher Buttons --- */
+        .view-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .view-btn.active {
+            color: var(--accent);
+            background: rgba(255, 204, 0, 0.15);
+        }
+
+        /* --- View Switcher Buttons --- */
+        .view-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .view-btn.active {
+            color: var(--accent);
+            background: rgba(255, 204, 0, 0.15);
+        }
+
         /* --- Sections --- */
         .section {
             display: none;
@@ -323,8 +359,23 @@
             border: 1px solid var(--border);
         }
 
-        .price-tag.best { border-color: var(--success); color: var(--success); }
         .price-tag.worst { border-color: var(--error); color: var(--error); }
+
+        /* --- View Modes (Fase 7) --- */
+        .products-list.v-compact .product-card { padding: 10px; gap: 10px; }
+        .products-list.v-compact .product-img { width: 50px; height: 50px; }
+        .products-list.v-compact .product-name { font-size: 14px; }
+        .products-list.v-compact .price-compare { display: flex; flex-wrap: wrap; gap: 5px; }
+        .products-list.v-compact .price-tag { font-size: 9px; padding: 2px 5px; }
+
+        .products-list.v-super .product-card { padding: 8px 12px; gap: 8px; align-items: center; }
+        .products-list.v-super .product-img { display: none; }
+        .products-list.v-super .product-name { font-size: 13px; }
+        .products-list.v-super .product-meta { display: none; }
+        .products-list.v-super .price-compare { display: none; }
+        .products-list.v-super .actions { margin-top: 0; }
+        .products-list.v-super .btn { padding: 5px; width: 30px; }
+        .products-list.v-super .product-header { margin-bottom: 0; align-items: center; }
 
         .economy-alert {
             font-size: 11px;
@@ -500,8 +551,13 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="font-size: 18px;">Meus Itens</h3>
+                <div style="display: flex; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 12px; border: 1px solid var(--border);">
+                    <button class="view-btn active" id="v-normal" onclick="setViewMode('normal')" title="Normal"><i data-lucide="layout-grid" size="14"></i></button>
+                    <button class="view-btn" id="v-compact" onclick="setViewMode('compact')" title="Compacto"><i data-lucide="list" size="14"></i></button>
+                    <button class="view-btn" id="v-super" onclick="setViewMode('super')" title="Supercompacto"><i data-lucide="rows" size="14"></i></button>
+                </div>
             </div>
-            <div id="product-list">
+            <div id="product-list" class="products-list">
                 <div style="text-align: center; color: var(--text-dim); margin-top: 40px;">
                     <i data-lucide="package-search" size="48" style="opacity: 0.3;"></i>
                     <p style="margin-top: 10px;">Nenhum produto cadastrado.</p>
@@ -621,7 +677,8 @@
             products: [],
             isScannerActive: false,
             currentScanned: null,
-            activeMarketIndex: null
+            activeMarketIndex: null,
+            viewMode: 'normal'
         };
 
         // --- Initialization ---
@@ -667,7 +724,24 @@
             const saved = localStorage.getItem('ecozomiz_state');
             if (saved) {
                 state = {...state, ...JSON.parse(saved)};
+                // Aplica o modo de visualização salvo
+                setTimeout(() => setViewMode(state.viewMode || 'normal'), 100);
             }
+        }
+
+        function setViewMode(mode) {
+            state.viewMode = mode;
+            const container = document.getElementById('product-list');
+            if (container) {
+                container.className = `products-list v-${mode}`;
+            }
+            
+            // Atualiza botões
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`v-${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            persist();
         }
 
         function persist() {
