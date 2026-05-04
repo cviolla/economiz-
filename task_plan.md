@@ -38,15 +38,14 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Tratar permissões de Geolocalização e Fallback manual
 
 ## 🎨 Fase 7: Visualização Adaptativa (Cards)
-- [ ] Criar POP em `architecture/card_views.md`
-- [ ] Definir tokens de estilo para Normal, Compacto e Supercompacto
-- [ ] Implementar Switcher de visualização no Header da aba Compras
-- [ ] Adaptar função `renderProducts` para os 3 modos
-- [ ] 7.5 Persistir escolha do usuário no `localStorage`
+- [x] Criar POP em `architecture/card_views.md`
+- [x] Definir tokens de estilo para Normal, Compacto e Supercompacto
+- [x] Implementar Switcher de visualização no Header da aba Compras
+- [x] Adaptar função `renderProducts` para os 3 modos
+- [x] Persistir escolha do usuário no `localStorage`
 
-## 💎 Fase 8: Experiência Imersiva e Comparação
-- [ ] Criar POP em `architecture/comparison_system.md`
-- [ ] Implementar Visão de Detalhes (Full Screen) ao clicar no card
-- [ ] Desenvolver Lógica de Comparação Automática (Inter-mercados)
-- [ ] Adicionar Gráfico de Histórico de Preços (Se possível via Sparklines)
-- [ ] Implementar sistema de "Favoritos" ou "Lista de Comparação"
+## 📊 Fase 8: Sistema de Comparação de Produtos
+- [ ] Criar POP em `architecture/comparison.md`
+- [ ] Implementar Algoritmo de "Cesta Otimizada"
+- [ ] Criar UI de "Comparativo por Mercado" na aba Resumo
+- [ ] Adicionar indicadores de "Preço Médio" e "Melhor Oportunidade"
