@@ -50,11 +50,11 @@
 ```
 
 ## 🎨 Design System (Aesthetics)
-- **Tema:** Dark Mode Profundo (Base: `#0F0F12`).
-- **Cards:** Glassmorphism (Background: `rgba(255, 255, 255, 0.05)`, Border: `1px solid rgba(255, 255, 255, 0.1)`).
-- **Cores de Destaque:** Amarelo Vibrante (`#FFCC00`) para ações principais, Verde (`#00E676`) para menor preço, Vermelho (`#FF5252`) para maior preço.
+- **Tema:** Suporte a Dark Mode Profundo (Base: `#0F0F12`) e Light Mode (Base: `#F5F5F7`).
+- **Cards:** Glassmorphism adaptativo (Dark: `rgba(255, 255, 255, 0.05)`, Light: `rgba(0, 0, 0, 0.03)`).
+- **Cores de Destaque:** Amarelo Vibrante (`#FFCC00`) para ações principais, Verde (`#00E676`/`#00C853`) para menor preço, Vermelho (`#FF5252`/`#D32F2F`) para maior preço.
 - **Tipografia:** Inter ou Roboto (Sans-serif moderna).
-- **Interações:** Micro-animações de hover e transições suaves entre abas.
+- **Interações:** Micro-animações de hover, transições suaves entre abas e troca de tema.
 
 ## 🛠️ Log de Manutenção
 - **2026-05-04:** Inicialização do sistema e definição da constituição inicial.
