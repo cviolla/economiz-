@@ -20,7 +20,7 @@
     
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
         :root {
@@ -452,19 +452,43 @@
 
         <!-- Section: Compras -->
         <section id="compras" class="section active">
-            <div id="scanner-view">
-                <div class="scanner-overlay">
-                    <div class="scanner-target"></div>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="font-size: 18px;">Meus Itens</h3>
-                <button class="btn-buy" style="padding: 5px 12px; width: auto;" onclick="toggleScanner()">
-                    <i data-lucide="camera" size="16"></i> Scanner
+            <!-- Scanner Modes -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                <button class="btn btn-buy" style="flex:1; font-size: 11px;" onclick="startLiveScanner()">
+                    <i data-lucide="scan-line" size="14"></i> Scanner
+                </button>
+                <button class="btn btn-buy" style="flex:1; font-size: 11px; background: rgba(255,204,0,0.2); color: var(--accent);" onclick="startPhotoScanner()">
+                    <i data-lucide="image" size="14"></i> Foto
+                </button>
+                <button class="btn btn-buy" style="flex:1; font-size: 11px; background: rgba(255,255,255,0.05); color: var(--text-dim);" onclick="showManualEntry()">
+                    <i data-lucide="keyboard" size="14"></i> Manual
                 </button>
             </div>
+
+            <!-- Live Scanner Container -->
+            <div id="scanner-view" style="display:none; margin-bottom: 15px;">
+                <div id="scanner-reader" style="width:100%; border-radius: 20px; overflow: hidden;"></div>
+                <button class="btn btn-reject" style="margin-top: 8px;" onclick="stopLiveScanner()">Fechar Scanner</button>
+            </div>
+
+            <!-- Photo Scanner -->
+            <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;" onchange="scanFromPhoto(event)">
+
+            <!-- Manual Entry -->
+            <div id="manual-entry" style="display:none; margin-bottom: 15px;">
+                <div class="form-group">
+                    <label>Código de Barras</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="manual-barcode" class="form-control" placeholder="Ex: 7891000053508">
+                        <button class="btn btn-buy" style="width: auto; padding: 0 15px;" onclick="searchManualBarcode()">Buscar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 18px;">Meus Itens</h3>
+            </div>
             <div id="product-list">
-                <!-- Products will be injected here -->
                 <div style="text-align: center; color: var(--text-dim); margin-top: 40px;">
                     <i data-lucide="package-search" size="48" style="opacity: 0.3;"></i>
                     <p style="margin-top: 10px;">Nenhum produto cadastrado.</p>
@@ -693,39 +717,79 @@
             alert('Mercados atualizados!');
         }
 
-        // --- Scanner & Product Logic ---
-        function toggleScanner() {
-            if (state.isScannerActive) {
-                Quagga.stop();
-                state.isScannerActive = false;
-            } else {
-                startScanner();
+        // --- Scanner & Product Logic (html5-qrcode) ---
+        let html5QrCode = null;
+
+        function startLiveScanner() {
+            document.getElementById('scanner-view').style.display = 'block';
+            document.getElementById('manual-entry').style.display = 'none';
+
+            if (html5QrCode) { try { html5QrCode.stop(); } catch(e){} }
+
+            html5QrCode = new Html5Qrcode("scanner-reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 100 }, formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_128
+                ]},
+                (decodedText) => {
+                    stopLiveScanner();
+                    fetchProduct(decodedText);
+                },
+                (errorMessage) => { /* ignora erros de frame */ }
+            ).catch(err => {
+                alert("Não foi possível acessar a câmera. Verifique as permissões.");
+                document.getElementById('scanner-view').style.display = 'none';
+            });
+        }
+
+        function stopLiveScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    document.getElementById('scanner-view').style.display = 'none';
+                }).catch(() => {
+                    document.getElementById('scanner-view').style.display = 'none';
+                });
             }
         }
 
-        function startScanner() {
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#scanner-view'),
-                    constraints: { facingMode: "environment" }
-                },
-                decoder: { readers: ["ean_reader", "ean_8_reader"] }
-            }, (err) => {
-                if (err) { alert("Erro ao acessar câmera."); return; }
-                Quagga.start();
-                state.isScannerActive = true;
-            });
+        function startPhotoScanner() {
+            document.getElementById('photo-input').click();
+        }
 
-            Quagga.onDetected((data) => {
-                const code = data.codeResult.code;
-                if (code) {
-                    Quagga.stop();
-                    state.isScannerActive = false;
-                    fetchProduct(code);
-                }
-            });
+        function scanFromPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const tempScanner = new Html5Qrcode("scanner-reader");
+            tempScanner.scanFile(file, true)
+                .then(decodedText => {
+                    fetchProduct(decodedText);
+                })
+                .catch(() => {
+                    alert("Não foi possível ler o código de barras da imagem. Tente digitar manualmente.");
+                    showManualEntry();
+                });
+            event.target.value = '';
+        }
+
+        function showManualEntry() {
+            document.getElementById('manual-entry').style.display = 'block';
+            document.getElementById('scanner-view').style.display = 'none';
+            document.getElementById('manual-barcode').focus();
+        }
+
+        function searchManualBarcode() {
+            const code = document.getElementById('manual-barcode').value.trim();
+            if (!code) { alert("Digite o código de barras."); return; }
+            document.getElementById('manual-entry').style.display = 'none';
+            document.getElementById('manual-barcode').value = '';
+            fetchProduct(code);
         }
 
         async function fetchProduct(code) {
@@ -738,19 +802,25 @@
                         codigo_barras: code,
                         nome: data.product.product_name || "Produto Desconhecido",
                         marca: data.product.brands || "Marca Indisponível",
-                        imagem_url: data.product.image_url || "https://via.placeholder.com/80?text=?"
+                        imagem_url: data.product.image_url || ""
                     };
                 } else {
                     state.currentScanned = {
                         codigo_barras: code,
                         nome: "Novo Produto",
                         marca: "Manual",
-                        imagem_url: "https://via.placeholder.com/80?text=?"
+                        imagem_url: ""
                     };
                 }
                 openProductModal();
             } catch(e) {
-                alert("Erro ao consultar API.");
+                state.currentScanned = {
+                    codigo_barras: code,
+                    nome: "Novo Produto (Offline)",
+                    marca: "Manual",
+                    imagem_url: ""
+                };
+                openProductModal();
             }
         }
 
