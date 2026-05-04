@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Economiz+ | Comparador Inteligente</title>
+    <meta name="theme-color" content="#0F0F12">
+    <meta name="description" content="O comparador de preços definitivo com leitura de código de barras.">
+    
+    <!-- PWA Manifest (Blob Inline via JS later or direct link) -->
+    <link rel="manifest" id="pwa-manifest">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
+    <style>
+        :root {
+            --bg-deep: #0F0F12;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-card-hover: rgba(255, 255, 255, 0.08);
+            --accent: #FFCC00;
+            --accent-glow: rgba(255, 204, 0, 0.3);
+            --text-main: #FFFFFF;
+            --text-dim: #A0A0A5;
+            --success: #00E676;
+            --error: #FF5252;
+            --warning: #FFAB40;
+            --border: rgba(255, 255, 255, 0.1);
+            --radius: 20px;
+            --glass-blur: blur(12px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .brand {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* --- Layout --- */
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding-bottom: 90px;
+        }
+
+        header {
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .brand-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .budget-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: var(--glass-blur);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 0 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .budget-info h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .budget-info p {
+            color: var(--text-dim);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Circular Progress --- */
+        .progress-ring {
+            position: relative;
+            width: 70px;
+            height: 70px;
+        }
+
+        .progress-ring svg {
+            width: 70px;
+            height: 70px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+        }
+
+        .progress-ring .bg {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-ring .bar {
+            stroke: var(--success);
+            stroke-dasharray: 201;
+            stroke-dashoffset: 201;
+            transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease;
+        }
+
+        .progress-ring.danger .bar {
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 1; stroke-width: 6; }
+            to { opacity: 0.7; stroke-width: 8; }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* --- Navigation --- */
+        .nav-tabs {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 400px;
+            background: rgba(15, 15, 18, 0.8);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* --- Sections --- */
+        .section {
+            display: none;
+            padding: 0 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Scanner --- */
+        #scanner-view {
+            width: 100%;
+            height: 250px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        #scanner-view video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 40px solid rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .scanner-target {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%; height: 60%;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* --- Cards & List --- */
+        .product-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 15px;
+            transition: transform 0.2s;
+        }
+
+        .product-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #222;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .product-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .product-meta {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .price-compare {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .price-tag {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+        }
+
+        .price-tag.best { border-color: var(--success); color: var(--success); }
+        .price-tag.worst { border-color: var(--error); color: var(--error); }
+
+        .economy-alert {
+            font-size: 11px;
+            color: var(--success);
+            font-weight: bold;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-buy { background: var(--accent); color: #000; }
+        .btn-reject { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+        .btn:active { transform: scale(0.95); }
+
+        /* --- Modals & Forms --- */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #1A1A1F;
+            width: 100%;
+            max-width: 400px;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; }
+        .form-control {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        /* --- Summary Cards --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .summary-box {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-box h4 { font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
+        .summary-box .value { font-size: 24px; font-weight: 800; color: var(--accent); }
+
+        /* --- Utilities --- */
+        .hide { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <i data-lucide="zap" fill="#000" size="20"></i>
+                </div>
+                <h1 class="brand">Economiz+</h1>
+            </div>
+            <button class="btn-reject" style="background: none; border: none; color: var(--accent);" id="btn-set-budget">
+                <i data-lucide="settings"></i>
+            </button>
+        </header>
+
+        <div class="budget-card">
+            <div class="budget-info">
+                <p>Orçamento Atual</p>
+                <h2 id="budget-value">R$ 0,00</h2>
+                <p id="budget-remaining" style="font-size: 11px; color: var(--success);">R$ 0,00 restantes</p>
+            </div>
+            <div class="progress-ring" id="budget-ring">
+                <svg>
+                    <circle class="bg" cx="35" cy="35" r="32"></circle>
+                    <circle class="bar" cx="35" cy="35" r="32" id="progress-bar"></circle>
+                </svg>
+                <div class="progress-text" id="progress-pct">0%</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <div class="nav-item active" onclick="showSection('compras', this)">
+                <i data-lucide="shopping-cart"></i>
+                <span>Compras</span>
+            </div>
+            <div class="nav-item" onclick="showSection('mercados', this)">
+                <i data-lucide="store"></i>
+                <span>Mercados</span>
+            </div>
+            <div class="nav-item" onclick="showSection('resumo', this)">
+                <i data-lucide="bar-chart-3"></i>
+                <span>Resumo</span>
+            </div>
+        </nav>
+
+        <!-- Section: Compras -->
+        <section id="compras" class="section active">
+            <div id="scanner-view">
+                <div class="scanner-overlay">
+                    <div class="scanner-target"></div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 18px;">Meus Itens</h3>
+                <button class="btn-buy" style="padding: 5px 12px; width: auto;" onclick="toggleScanner()">
+                    <i data-lucide="camera" size="16"></i> Scanner
+                </button>
+            </div>
+            <div id="product-list">
+                <!-- Products will be injected here -->
+                <div style="text-align: center; color: var(--text-dim); margin-top: 40px;">
+                    <i data-lucide="package-search" size="48" style="opacity: 0.3;"></i>
+                    <p style="margin-top: 10px;">Nenhum produto cadastrado.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Mercados -->
+        <section id="mercados" class="section">
+            <h3 style="margin-bottom: 20px;">Meus Mercados</h3>
+            <div class="form-group">
+                <label>Mercado 1</label>
+                <input type="text" class="form-control market-input" data-index="0" placeholder="Ex: Pão de Açúcar">
+            </div>
+            <div class="form-group">
+                <label>Mercado 2</label>
+                <input type="text" class="form-control market-input" data-index="1" placeholder="Ex: Carrefour">
+            </div>
+            <div class="form-group">
+                <label>Mercado 3</label>
+                <input type="text" class="form-control market-input" data-index="2" placeholder="Ex: Atacadão">
+            </div>
+            <div class="form-group">
+                <label>Mercado 4</label>
+                <input type="text" class="form-control market-input" data-index="3" placeholder="Ex: Mercado do Bairro">
+            </div>
+            <button class="btn btn-buy" onclick="saveMarkets()">Salvar Mercados</button>
+        </section>
+
+        <!-- Section: Resumo -->
+        <section id="resumo" class="section">
+            <h3 style="margin-bottom: 20px;">Relatório de Gastos</h3>
+            <div class="summary-grid">
+                <div class="summary-box">
+                    <h4>Total Itens</h4>
+                    <div class="value" id="res-total-itens">0</div>
+                </div>
+                <div class="summary-box">
+                    <h4>Comprados</h4>
+                    <div class="value" id="res-comprados">0</div>
+                </div>
+                <div class="summary-box">
+                    <h4>Gasto Total</h4>
+                    <div class="value" id="res-gasto-total">R$ 0,00</div>
+                </div>
+                <div class="summary-box">
+                    <h4>Economia</h4>
+                    <div class="value" id="res-economia" style="color: var(--success);">R$ 0,00</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Melhores Preços</h3>
+            <div id="ranking-list">
+                <!-- Ranking items -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-product" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Novo Produto</h2>
+            <div id="product-preview" style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <img id="modal-img" src="" class="product-img" alt="">
+                <div>
+                    <p id="modal-name" style="font-weight: bold;"></p>
+                    <p id="modal-brand" style="font-size: 12px; color: var(--text-dim);"></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Onde você está?</label>
+                <select id="modal-market" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label>Preço neste mercado</label>
+                <input type="number" step="0.01" id="modal-price" class="form-control" placeholder="0.00">
+            </div>
+            <div class="actions">
+                <button class="btn btn-reject" onclick="closeModal('modal-product')">Cancelar</button>
+                <button class="btn btn-buy" onclick="saveNewProduct()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-budget" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Definir Orçamento</h2>
+            <div class="form-group">
+                <label>Quanto deseja gastar hoje?</label>
+                <input type="number" id="budget-input" class="form-control" placeholder="500.00">
+            </div>
+            <button class="btn btn-buy" onclick="saveBudget()">Salvar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuração Supabase ---
+        const SUPABASE_URL = 'https://qosjdxonwikshzinfjmg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvc2pkeG9ud2lrc2h6aW5mam1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NzM2OTgsImV4cCI6MjA5MzQ0OTY5OH0.DSAeUtFXHq-59cjb0ilWlEkt3uv4GnMsVMhDsyL7kK4';
+        let supabase = null;
+        try {
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch(e) { console.log('Erro ao inicializar Supabase.'); }
+
+        // --- State Management ---
+        let state = {
+            budget: 0,
+            markets: ["Mercado 1", "Mercado 2", "Mercado 3", "Mercado 4"],
+            products: [],
+            isScannerActive: false,
+            currentScanned: null
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadState();
+            renderMarkets();
+            updateBudgetUI();
+            renderProducts();
+            
+            // Register PWA Service Worker (Placeholder for demo)
+            if ('serviceWorker' in navigator) {
+                console.log('SW pronto para registro.');
+            }
+        });
+
+        // --- PWA Helper: Generate Manifest on the fly ---
+        const manifest = {
+            name: "Economiz+",
+            short_name: "Eco+",
+            start_url: ".",
+            display: "standalone",
+            background_color: "#0F0F12",
+            theme_color: "#FFCC00",
+            icons: [{ src: "https://via.placeholder.com/192x192/FFCC00/000000?text=E", sizes: "192x192", type: "image/png" }]
+        };
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
+
+        // --- Core Functions ---
+        function showSection(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+            
+            if (id !== 'compras' && state.isScannerActive) toggleScanner();
+            if (id === 'resumo') updateSummary();
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('ecozomiz_state');
+            if (saved) {
+                state = {...state, ...JSON.parse(saved)};
+            }
+        }
+
+        function persist() {
+            localStorage.setItem('ecozomiz_state', JSON.stringify(state));
+            if (supabase) {
+                // Background sync logic placeholder
+            }
+        }
+
+        // --- Budget Logic ---
+        function saveBudget() {
+            const val = parseFloat(document.getElementById('budget-input').value);
+            if (!isNaN(val)) {
+                state.budget = val;
+                persist();
+                updateBudgetUI();
+                closeModal('modal-budget');
+            }
+        }
+
+        function updateBudgetUI() {
+            const gastoTotal = state.products
+                .filter(p => p.comprado)
+                .reduce((acc, p) => acc + p.preco, 0);
+            
+            const remaining = state.budget - gastoTotal;
+            const pct = state.budget > 0 ? Math.min(100, (gastoTotal / state.budget) * 100) : 0;
+            
+            document.getElementById('budget-value').innerText = `R$ ${state.budget.toFixed(2)}`;
+            document.getElementById('budget-remaining').innerText = `R$ ${remaining.toFixed(2)} restantes`;
+            document.getElementById('progress-pct').innerText = `${Math.round(pct)}%`;
+            
+            // Update Ring
+            const circle = document.getElementById('progress-bar');
+            const offset = 201 - (201 * pct / 100);
+            circle.style.strokeDashoffset = offset;
+            
+            // Colors & Danger
+            const ring = document.getElementById('budget-ring');
+            if (pct < 70) circle.style.stroke = '#00E676';
+            else if (pct < 90) circle.style.stroke = '#FFAB40';
+            else circle.style.stroke = '#FF5252';
+
+            if (pct >= 85) ring.classList.add('danger');
+            else ring.classList.remove('danger');
+        }
+
+        // --- Market Logic ---
+        function renderMarkets() {
+            const inputs = document.querySelectorAll('.market-input');
+            inputs.forEach((input, i) => {
+                input.value = state.markets[i] || "";
+            });
+            
+            // Update selects
+            const select = document.getElementById('modal-market');
+            select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+        }
+
+        function saveMarkets() {
+            const inputs = document.querySelectorAll('.market-input');
+            state.markets = Array.from(inputs).map(i => i.value || `Mercado ${parseInt(i.dataset.index)+1}`);
+            persist();
+            renderMarkets();
+            alert('Mercados atualizados!');
+        }
+
+        // --- Scanner & Product Logic ---
+        function toggleScanner() {
+            if (state.isScannerActive) {
+                Quagga.stop();
+                state.isScannerActive = false;
+            } else {
+                startScanner();
+            }
+        }
+
+        function startScanner() {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner-view'),
+                    constraints: { facingMode: "environment" }
+                },
+                decoder: { readers: ["ean_reader", "ean_8_reader"] }
+            }, (err) => {
+                if (err) { alert("Erro ao acessar câmera."); return; }
+                Quagga.start();
+                state.isScannerActive = true;
+            });
+
+            Quagga.onDetected((data) => {
+                const code = data.codeResult.code;
+                if (code) {
+                    Quagga.stop();
+                    state.isScannerActive = false;
+                    fetchProduct(code);
+                }
+            });
+        }
+
+        async function fetchProduct(code) {
+            try {
+                const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+                const data = await res.json();
+                
+                if (data.status === 1) {
+                    state.currentScanned = {
+                        codigo_barras: code,
+                        nome: data.product.product_name || "Produto Desconhecido",
+                        marca: data.product.brands || "Marca Indisponível",
+                        imagem_url: data.product.image_url || "https://via.placeholder.com/80?text=?"
+                    };
+                } else {
+                    state.currentScanned = {
+                        codigo_barras: code,
+                        nome: "Novo Produto",
+                        marca: "Manual",
+                        imagem_url: "https://via.placeholder.com/80?text=?"
+                    };
+                }
+                openProductModal();
+            } catch(e) {
+                alert("Erro ao consultar API.");
+            }
+        }
+
+        function openProductModal() {
+            document.getElementById('modal-name').innerText = state.currentScanned.nome;
+            document.getElementById('modal-brand').innerText = state.currentScanned.marca;
+            document.getElementById('modal-img').src = state.currentScanned.imagem_url;
+            document.getElementById('modal-product').style.display = 'flex';
+        }
+
+        function saveNewProduct() {
+            const marketId = parseInt(document.getElementById('modal-market').value);
+            const price = parseFloat(document.getElementById('modal-price').value);
+            
+            if (isNaN(price)) { alert("Informe o preço!"); return; }
+
+            const newProd = {
+                ...state.currentScanned,
+                id: Date.now().toString(),
+                mercado_id: marketId,
+                preco: price,
+                comprado: false,
+                data_cadastro: new Date().toISOString()
+            };
+
+            state.products.push(newProd);
+            persist();
+            renderProducts();
+            updateBudgetUI();
+            closeModal('modal-product');
+        }
+
+        function buyProduct(id) {
+            const p = state.products.find(x => x.id === id);
+            if (p) {
+                p.comprado = !p.comprado;
+                persist();
+                renderProducts();
+                updateBudgetUI();
+            }
+        }
+
+        function rejectProduct(id) {
+            state.products = state.products.filter(x => x.id !== id);
+            persist();
+            renderProducts();
+            updateBudgetUI();
+        }
+
+        function renderProducts() {
+            const list = document.getElementById('product-list');
+            if (state.products.length === 0) {
+                list.innerHTML = `<div style="text-align: center; color: var(--text-dim); margin-top: 40px;"><i data-lucide="package-search" size="48" style="opacity: 0.3;"></i><p style="margin-top: 10px;">Nenhum produto cadastrado.</p></div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            // Group by barcode to compare prices
+            const grouped = {};
+            state.products.forEach(p => {
+                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
+                grouped[p.codigo_barras].push(p);
+            });
+
+            list.innerHTML = state.products.slice().reverse().map(p => {
+                const brothers = grouped[p.codigo_barras];
+                const minPrice = Math.min(...brothers.map(b => b.preco));
+                const maxPrice = Math.max(...brothers.map(b => b.preco));
+                const economy = maxPrice - p.preco;
+
+                return `
+                    <div class="product-card" style="${p.comprado ? 'opacity: 0.6; border-color: var(--success);' : ''}">
+                        <img src="${p.imagem_url}" class="product-img">
+                        <div class="product-info">
+                            <div class="product-header">
+                                <span class="product-name">${p.nome}</span>
+                                <span style="font-weight: 800; color: var(--accent);">R$ ${p.preco.toFixed(2)}</span>
+                            </div>
+                            <div class="product-meta">${p.marca} • ${state.markets[p.mercado_id]}</div>
+                            
+                            <div class="price-compare">
+                                ${state.markets.map((m, i) => {
+                                    const bp = brothers.find(b => b.mercado_id === i);
+                                    if (!bp) return `<div class="price-tag">---</div>`;
+                                    let cls = "";
+                                    if (bp.preco === minPrice && brothers.length > 1) cls = "best";
+                                    if (bp.preco === maxPrice && brothers.length > 1) cls = "worst";
+                                    return `<div class="price-tag ${cls}">${bp.preco.toFixed(2)}</div>`;
+                                }).join('')}
+                            </div>
+
+                            ${economy > 0 ? `
+                                <div class="economy-alert">
+                                    <i data-lucide="trending-down" size="12"></i>
+                                    Economia: R$ ${economy.toFixed(2)}
+                                </div>
+                            ` : ''}
+
+                            <div class="actions">
+                                <button class="btn btn-buy" onclick="buyProduct('${p.id}')">
+                                    <i data-lucide="${p.comprado ? 'undo' : 'check'}"></i> ${p.comprado ? 'Desfazer' : 'Comprar'}
+                                </button>
+                                <button class="btn btn-reject" onclick="rejectProduct('${p.id}')">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // --- Summary Logic ---
+        function updateSummary() {
+            const comprados = state.products.filter(p => p.comprado);
+            const gastoTotal = comprados.reduce((acc, p) => acc + p.preco, 0);
+            
+            let economiaTotal = 0;
+            const grouped = {};
+            state.products.forEach(p => {
+                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
+                grouped[p.codigo_barras].push(p);
+            });
+
+            comprados.forEach(p => {
+                const maxP = Math.max(...grouped[p.codigo_barras].map(b => b.preco));
+                economiaTotal += (maxP - p.preco);
+            });
+
+            document.getElementById('res-total-itens').innerText = state.products.length;
+            document.getElementById('res-comprados').innerText = comprados.length;
+            document.getElementById('res-gasto-total').innerText = `R$ ${gastoTotal.toFixed(2)}`;
+            document.getElementById('res-economia').innerText = `R$ ${economiaTotal.toFixed(2)}`;
+            
+            renderRanking(grouped);
+        }
+
+        function renderRanking(grouped) {
+            const ranking = document.getElementById('ranking-list');
+            const items = Object.values(grouped).map(prods => {
+                const best = prods.reduce((prev, curr) => prev.preco < curr.preco ? prev : curr);
+                return `
+                    <div class="product-card" style="margin-bottom: 8px; padding: 10px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
+                            <div style="font-size: 11px; color: var(--success);">Melhor em: ${state.markets[best.mercado_id]}</div>
+                        </div>
+                        <div style="font-weight: 800;">R$ ${best.preco.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+            ranking.innerHTML = items || '<p style="color: var(--text-dim); font-size: 13px;">Nada para mostrar.</p>';
+        }
+
+        // --- Modals ---
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        document.getElementById('btn-set-budget').onclick = () => {
+            document.getElementById('budget-input').value = state.budget;
+            document.getElementById('modal-budget').style.display = 'flex';
+        };
+    </script>
+</body>
+</html>

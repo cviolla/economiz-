@@ -1,0 +1,11 @@
+# Temporários
+.tmp/
+node_modules/
+
+# Ambiente
+.env
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
