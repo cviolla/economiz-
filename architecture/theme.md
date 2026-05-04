@@ -17,8 +17,9 @@ O sistema utiliza variáveis CSS para garantir consistência entre os temas. O t
 | `--bg-card-hover` | `rgba(255, 255, 255, 0.08)` | `rgba(0, 0, 0, 0.06)` |
 | `--border` | `rgba(255, 255, 255, 0.1)` | `rgba(0, 0, 0, 0.08)` |
 | `--accent` | `#FFCC00` | `#FFCC00` |
-| `--success` | `#00E676` | `#00C853` |
-| `--error` | `#FF5252` | `#D32F2F` |
+| --success | #00E676 | #00C853 (Preços: #000) |
+| --error | #FF5252 | #D32F2F (Preços: #000) |
+| --text-price | #FFFFFF | #000000 |
 
 ## 🛠️ Implementação Técnica
 
