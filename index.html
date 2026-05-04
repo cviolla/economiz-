@@ -567,8 +567,17 @@
                 <div class="brand-logo">
                     <img src="logo.png" alt="Economiz+">
                 </div>
-                <h1 class="brand">economiz+</h1>
+                <div style="display: flex; flex-direction: column;">
+                    <h1 class="brand">economiz+</h1>
+                    <span style="font-size: 8px; color: var(--text-dim); opacity: 0.5;">v1.2.5</span>
+                </div>
             </div>
+
+            <!-- Seletores Rápidos de Mercado -->
+            <div id="market-quick-nav" style="display: flex; gap: 8px; align-items: flex-end; margin-right: auto; margin-left: 20px;">
+                <!-- Injetado via JS -->
+            </div>
+
             <button class="btn-reject" style="background: none; border: none; color: var(--accent);" id="btn-set-budget">
                 <i data-lucide="settings"></i>
             </button>
@@ -817,6 +826,7 @@
             lucide.createIcons();
             loadState();
             renderMarkets();
+            renderQuickSelectors();
             updateBudgetUI();
             renderProducts();
             
@@ -1051,7 +1061,6 @@
             else ring.classList.remove('danger');
         }
 
-        // --- Market Logic ---
         function renderMarkets() {
             const container = document.getElementById('markets-list-container');
             
@@ -1070,14 +1079,38 @@
                                 <i data-lucide="map-pin" size="10"></i> Check-in
                             </button>
                         </div>
-                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || m}" placeholder="Nome do mercado">
+                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || ''}" placeholder="Nome do mercado" oninput="updateMarketName(${i}, this.value)">
                     </div>
                 `;
             }).join('');
             
             const select = document.getElementById('modal-market');
-            select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m.name || m}</option>`).join('');
+            if (select) {
+                select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m.name || 'Mercado ' + (i+1)}</option>`).join('');
+            }
             lucide.createIcons();
+            renderQuickSelectors();
+        }
+
+        function updateMarketName(idx, val) {
+            state.markets[idx].name = val;
+            persist();
+            renderQuickSelectors();
+        }
+
+        function renderQuickSelectors() {
+            const nav = document.getElementById('market-quick-nav');
+            if (!nav) return;
+            nav.innerHTML = state.markets.map((m, i) => `
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                    <span style="font-size: 7px; text-transform: uppercase; color: var(--text-dim); font-weight: 800; max-width: 35px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1;">
+                        ${m.name || 'M' + (i+1)}
+                    </span>
+                    <button onclick="showSection('mercados')" style="width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-weight: 800; font-size: 11px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+                        ${i+1}
+                    </button>
+                </div>
+            `).join('');
         }
 
         function saveMarkets() {
