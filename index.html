@@ -21,6 +21,8 @@
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
@@ -500,19 +502,39 @@
         <section id="mercados" class="section">
             <h3 style="margin-bottom: 20px;">Meus Mercados</h3>
             <div class="form-group">
-                <label>Mercado 1</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin-bottom: 0;">Mercado 1</label>
+                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(0)">
+                        <i data-lucide="map-pin" size="10"></i> Check-in
+                    </button>
+                </div>
                 <input type="text" class="form-control market-input" data-index="0" placeholder="Ex: Pão de Açúcar">
             </div>
             <div class="form-group">
-                <label>Mercado 2</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin-bottom: 0;">Mercado 2</label>
+                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(1)">
+                        <i data-lucide="map-pin" size="10"></i> Check-in
+                    </button>
+                </div>
                 <input type="text" class="form-control market-input" data-index="1" placeholder="Ex: Carrefour">
             </div>
             <div class="form-group">
-                <label>Mercado 3</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin-bottom: 0;">Mercado 3</label>
+                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(2)">
+                        <i data-lucide="map-pin" size="10"></i> Check-in
+                    </button>
+                </div>
                 <input type="text" class="form-control market-input" data-index="2" placeholder="Ex: Atacadão">
             </div>
             <div class="form-group">
-                <label>Mercado 4</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="margin-bottom: 0;">Mercado 4</label>
+                    <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(3)">
+                        <i data-lucide="map-pin" size="10"></i> Check-in
+                    </button>
+                </div>
                 <input type="text" class="form-control market-input" data-index="3" placeholder="Ex: Mercado do Bairro">
             </div>
             <button class="btn btn-buy" onclick="saveMarkets()">Salvar Mercados</button>
@@ -584,6 +606,18 @@
         </div>
     </div>
 
+    <div id="modal-map" class="modal">
+        <div class="modal-content" style="max-width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="font-size: 18px;">Check-in no Mercado</h2>
+                <button class="btn-reject" style="width: auto; padding: 5px 10px;" onclick="closeModal('modal-map')">X</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Toque no ícone do mercado no mapa para selecioná-lo.</p>
+            <div id="map-container"></div>
+            <div id="map-status" style="margin-top: 10px; font-size: 11px; color: var(--accent);">Buscando mercados próximos...</div>
+        </div>
+    </div>
+
     <script>
         // --- Configuração Supabase ---
         const SUPABASE_URL = 'https://qosjdxonwikshzinfjmg.supabase.co';
@@ -600,10 +634,16 @@
         // --- State Management ---
         let state = {
             budget: 0,
-            markets: ["Mercado 1", "Mercado 2", "Mercado 3", "Mercado 4"],
+            markets: [
+                {name: "Mercado 1", lat: null, lon: null},
+                {name: "Mercado 2", lat: null, lon: null},
+                {name: "Mercado 3", lat: null, lon: null},
+                {name: "Mercado 4", lat: null, lon: null}
+            ],
             products: [],
             isScannerActive: false,
-            currentScanned: null
+            currentScanned: null,
+            activeMarketIndex: null
         };
 
         // --- Initialization ---
@@ -720,20 +760,91 @@
         function renderMarkets() {
             const inputs = document.querySelectorAll('.market-input');
             inputs.forEach((input, i) => {
-                input.value = state.markets[i] || "";
+                input.value = state.markets[i]?.name || state.markets[i] || "";
             });
             
-            // Update selects
             const select = document.getElementById('modal-market');
-            select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+            select.innerHTML = state.markets.map((m, i) => `<option value="${i}">${m.name || m}</option>`).join('');
+            lucide.createIcons();
         }
 
         function saveMarkets() {
             const inputs = document.querySelectorAll('.market-input');
-            state.markets = Array.from(inputs).map(i => i.value || `Mercado ${parseInt(i.dataset.index)+1}`);
+            state.markets = Array.from(inputs).map((input, i) => {
+                const old = state.markets[i] || {};
+                return {
+                    name: input.value || `Mercado ${i+1}`,
+                    lat: old.lat || null,
+                    lon: old.lon || null
+                };
+            });
             persist();
             renderMarkets();
             alert('Mercados atualizados!');
+        }
+
+        // --- Map & Check-in Logic ---
+        let map = null;
+        let markers = [];
+
+        function openCheckIn(index) {
+            state.activeMarketIndex = index;
+            document.getElementById('modal-map').style.display = 'flex';
+            
+            if (!map) {
+                map = L.map('map-container').setView([-23.5505, -46.6333], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+            }
+
+            if (navigator.geolocation) {
+                document.getElementById('map-status').innerText = "Obtendo sua localização...";
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude, longitude } = pos.coords;
+                    map.setView([latitude, longitude], 16);
+                    findNearbyMarkets(latitude, longitude);
+                }, err => {
+                    document.getElementById('map-status').innerText = "Erro ao obter localização. Use o mapa para buscar.";
+                });
+            }
+            
+            // Forçar redimensionamento do Leaflet no modal
+            setTimeout(() => map.invalidateSize(), 300);
+        }
+
+        async function findNearbyMarkets(lat, lon) {
+            document.getElementById('map-status').innerText = "Buscando mercados próximos...";
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            try {
+                // Busca mercados num raio de 1km via Nominatim
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=supermarket&limit=10&viewbox=${lon-0.02},${lat+0.02},${lon+0.02},${lat-0.02}&bounded=1`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    document.getElementById('map-status').innerText = "Nenhum mercado encontrado por perto.";
+                    return;
+                }
+
+                data.forEach(place => {
+                    const marker = L.marker([place.lat, place.lon]).addTo(map);
+                    marker.bindPopup(`<b>${place.display_name.split(',')[0]}</b><br><button class="btn btn-buy" style="padding: 2px 8px; font-size: 10px; margin-top:5px;" onclick="selectMarketFromMap('${place.display_name.split(',')[0]}', ${place.lat}, ${place.lon})">Selecionar</button>`);
+                    markers.push(marker);
+                });
+                document.getElementById('map-status').innerText = `${data.length} mercados encontrados.`;
+            } catch (e) {
+                document.getElementById('map-status').innerText = "Erro ao buscar mercados na rede.";
+            }
+        }
+
+        function selectMarketFromMap(name, lat, lon) {
+            const idx = state.activeMarketIndex;
+            state.markets[idx] = { name, lat, lon };
+            persist();
+            renderMarkets();
+            closeModal('modal-map');
         }
 
         // --- Scanner & Product Logic (html5-qrcode) ---
@@ -918,7 +1029,7 @@
                                 <span class="product-name">${p.nome}</span>
                                 <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
                             </div>
-                            <div class="product-meta">${p.marca} • ${state.markets[p.mercado_id]}</div>
+                            <div class="product-meta">${p.marca} • ${state.markets[p.mercado_id]?.name || state.markets[p.mercado_id]}</div>
                             
                             <div class="price-compare">
                                 ${brothers.length > 1 ? state.markets.map((m, i) => {
@@ -988,7 +1099,7 @@
                     <div class="product-card" style="margin-bottom: 8px; padding: 10px;">
                         <div style="flex: 1;">
                             <div style="font-weight: bold; font-size: 14px;">${best.nome}</div>
-                            <div style="font-size: 11px; color: var(--success);">Melhor em: ${state.markets[best.mercado_id]}</div>
+                            <div style="font-size: 11px; color: var(--success);">Melhor em: ${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
                         </div>
                         <div style="font-weight: 800;">${fCurr(best.preco)}</div>
                     </div>

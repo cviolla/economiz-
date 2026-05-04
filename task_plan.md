@@ -30,8 +30,9 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Implementar Anel de Progresso SVG Dinâmico
 - [x] Aplicar Glassmorphism nos cards de produtos
 
-## 🛰️ Fase 5: G - Gatilho
-- [x] Gerar `manifest.json` e Service Worker
-- [x] Script de migração SQL para o Supabase
-- [x] Empacotamento final em arquivo único HTML
-- [x] Push para o GitHub e Deploy
+## 🗺️ Fase 6: Check-in Inteligente (Localização)
+- [ ] Criar POP em `architecture/checkin.md`
+- [ ] Atualizar Schema na Constituição (`gemini.md`)
+- [ ] Implementar integração com Leaflet.js e Nominatim API
+- [ ] Adicionar botão de "Check-in" na aba Mercados
+- [ ] Tratar permissões de Geolocalização e Fallback manual

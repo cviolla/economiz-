@@ -19,7 +19,9 @@
 ```json
 {
   "id": "uuid (pk)",
-  "nome": "text"
+  "nome": "text",
+  "lat": "numeric",
+  "long": "numeric"
 }
 ```
 
