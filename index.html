@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#0F0F12">
     <meta name="description" content="O comparador de preços definitivo com leitura de código de barras.">
     
-    <!-- PWA Manifest (Blob Inline via JS later or direct link) -->
-    <link rel="manifest" id="pwa-manifest">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -913,32 +913,7 @@
             });
         });
 
-        // --- PWA Helper: Manifest dinâmico ---
-        const manifest = {
-            name: "economiz+ - Inteligência em Compras",
-            short_name: "economiz+",
-            start_url: "./index.html",
-            display: "standalone",
-            orientation: "portrait",
-            background_color: "#0F0F12",
-            theme_color: "#FFCC00",
-            icons: [
-                { 
-                    src: "https://via.placeholder.com/192x192/FFCC00/000000?text=e+", 
-                    sizes: "192x192", 
-                    type: "image/png",
-                    purpose: "any maskable" 
-                },
-                { 
-                    src: "https://via.placeholder.com/512x512/FFCC00/000000?text=e+", 
-                    sizes: "512x512", 
-                    type: "image/png" 
-                }
-            ]
-        };
-        const stringManifest = JSON.stringify(manifest);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
+        // O manifesto agora é carregado estaticamente via manifest.json
 
         // --- Core Functions ---
         function showSection(id, el) {

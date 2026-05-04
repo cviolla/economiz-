@@ -3,6 +3,7 @@ const ASSETS = [
   './',
   './index.html',
   './logo.png',
+  './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap',
   'https://unpkg.com/lucide@latest',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
