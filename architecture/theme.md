@@ -1,25 +1,27 @@
 # POP - Gerenciamento de Temas (Light/Dark Mode)
 
-Este documento define o padrão para a implementação e manutenção dos modos claro e escuro no sistema economiz+.
+Este documento define o padrão para a implementação e manutenção do novo design system moderno do economiz+.
 
 ## 🎨 Design System
 
-O sistema utiliza variáveis CSS para garantir consistência entre os temas. O tema padrão é o **Dark Mode Profundo**.
+A arquitetura visual foi atualizada para focar primariamente em um **Light Mode Moderno** com alta aderência a elementos de interface de dashboard (cards coloridos, sombras suaves, arredondamentos amplos). O Dark Mode agora atua como fallback ou modo secundário.
 
-### Variáveis de Cor
+### Variáveis de Cor (Modern Dashboard)
 
-| Variável | Dark Mode (Padrão) | Light Mode |
-| :--- | :--- | :--- |
-| `--bg-deep` | `#0F0F12` | `#F5F5F7` |
-| `--text-main` | `#FFFFFF` | `#0F0F12` |
-| `--text-dim` | `#A0A0A5` | `#6E6E73` |
-| `--bg-card` | `rgba(255, 255, 255, 0.05)` | `rgba(0, 0, 0, 0.03)` |
-| `--bg-card-hover` | `rgba(255, 255, 255, 0.08)` | `rgba(0, 0, 0, 0.06)` |
-| `--border` | `rgba(255, 255, 255, 0.1)` | `rgba(0, 0, 0, 0.08)` |
-| `--accent` | `#FFCC00` | `#FFCC00` |
-| --success | #00E676 | #00C853 (Preços: #000) |
-| --error | #FF5252 | #D32F2F (Preços: #000) |
-| --text-price | #FFFFFF | #000000 |
+| Variável | Light Mode (Padrão) | Dark Mode | Descrição |
+| :--- | :--- | :--- | :--- |
+| `--bg-deep` | `#F5F5F7` | `#0F0F12` | Fundo principal da aplicação |
+| `--bg-card` | `#FFFFFF` | `rgba(255, 255, 255, 0.05)` | Fundo dos cards brancos/neutros |
+| `--text-main` | `#1A1A1F` | `#FFFFFF` | Texto de alta prioridade e valores numéricos |
+| `--text-dim` | `#6E6E73` | `#A0A0A5` | Labels, subtítulos e textos auxiliares |
+| `--accent` | `#E5B800` | `#FFCC00` | Amarelo de destaque e ações primárias |
+| `--border` | `rgba(0, 0, 0, 0.06)` | `rgba(255, 255, 255, 0.1)` | Linhas divisórias muito sutis |
+| `--card-pink` | `#FFE5E5` | `rgba(255, 182, 193, 0.15)` | Destaque pastel (ex: Gasto Total) |
+| `--card-yellow`| `#FFF0D4` | `rgba(255, 204, 0, 0.1)` | Destaque pastel (ex: Comprados) |
+| `--card-green` | `#E5FFE5` | `rgba(0, 230, 118, 0.1)` | Destaque pastel (ex: Economia) |
+| `--card-purple`| `#E5E5FF` | `rgba(107, 102, 255, 0.15)` | Destaque pastel (ex: Itens) |
+| `--grad-red` | `linear-gradient(135deg, #FF4B72, #FF7B93)` | `linear-gradient(135deg, #A82E47, #C64A62)` | Fundo super-destacado vermelho |
+| `--grad-blue`| `linear-gradient(135deg, #6B66FF, #8B86FF)` | `linear-gradient(135deg, #4440B3, #5F5AD4)` | Fundo super-destacado azul |
 
 ## 🛠️ Implementação Técnica
 

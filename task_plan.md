@@ -61,3 +61,11 @@ Implementar o projeto seguindo rigorosamente o protocolo V.L.A.E.G.
 - [x] Implementar Modal de "Gasto por Mercado" ao clicar em Gasto Total
 - [x] Implementar Modal de "Top Economias" ao clicar em Economia
 - [x] Adicionar atalhos de navegação nos cards de Itens e Comprados
+
+## 🌟 Fase 11: Refatoração Visual (Dashboard Moderno)
+- [x] Executar `/gsd-ui-phase` para mapear as novas cores, tipografia e formato do print.
+- [x] Criar `architecture/UI-SPEC.md`
+- [x] Atualizar `architecture/theme.md` com a paleta pastel e predominância do Light Mode.
+- [x] Injetar novo pacote CSS em `index.html` via DOM Replace.
+- [x] Refatorar layout da aba de Resumo (Cards coloridos e iconografia).
+- [x] Refatorar layout do Ranking (Remover bordas, aplicar gradiente de alto contraste).

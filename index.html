@@ -724,6 +724,56 @@
 
         /* --- Utilities --- */
         .hide { display: none !important; }
+        
+        /* --- Modern Dashboard Overhaul --- */
+        body.light-mode {
+            --bg-deep: #F5F5F7;
+            --bg-nav: rgba(255, 255, 255, 0.95);
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #FAFAFA;
+            --text-main: #1A1A1F;
+            --text-dim: #6E6E73;
+            --accent: #E5B800;
+            --success: #00A843;
+            --border: rgba(0, 0, 0, 0.05);
+        }
+        body.light-mode .budget-card, 
+        body.light-mode .product-card,
+        body.light-mode .summary-box,
+        body.light-mode .ranking-card {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.03);
+            border-radius: 24px;
+        }
+        body.light-mode header .brand { font-size: 24px !important; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .summary-box { 
+            display: flex; flex-direction: column; justify-content: flex-end; 
+            padding: 20px; border-radius: 24px; min-height: 140px; position: relative; overflow: hidden; border: none;
+            text-align: left;
+        }
+        .summary-box h4 { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #1A1A1F; text-transform: none; }
+        .summary-box .value { font-size: 24px; font-weight: 800; color: #1A1A1F; margin-bottom: 5px; }
+        .summary-box .icon-box { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); }
+        .summary-box .icon-box i { color: #1A1A1F; width: 18px; height: 18px; }
+        .summary-box .trend { font-size: 10px; color: var(--success); font-weight: 600; margin: 0; }
+        .summary-box::after { display: none; }
+        
+        .pastel-pink { background: #FFE5E5; }
+        .pastel-pink .icon-box i { color: #FF4B72; }
+        .pastel-yellow { background: #FFF0D4; }
+        .pastel-yellow .icon-box i { color: #E5B800; }
+        .pastel-green { background: #E5FFE5; }
+        .pastel-green .icon-box i { color: #00A843; }
+        .pastel-purple { background: #E5E5FF; }
+        .pastel-purple .icon-box i { color: #6B66FF; }
+
+        body.light-mode .ranking-card { background: linear-gradient(135deg, #FF4B72, #FF7B93); color: white; border: none; }
+        body.light-mode .ranking-card:nth-child(even) { background: linear-gradient(135deg, #6B66FF, #8B86FF); }
+        body.light-mode .ranking-card .market-name { color: rgba(255,255,255,0.9) !important; }
+        body.light-mode .ranking-card .price-label { color: rgba(255,255,255,0.7) !important; }
+        body.light-mode .ranking-card .icon-circle { background: rgba(255,255,255,0.2) !important; }
+        body.light-mode .ranking-card .icon-circle i { color: #FFFFFF !important; }
     </style>
 </head>
 <body>
@@ -871,21 +921,29 @@
         <section id="resumo" class="section">
             <h3 style="margin-bottom: 20px;">Relatório de Gastos</h3>
             <div class="summary-grid">
-                <div class="summary-box" onclick="showSection('compras')">
-                    <h4>Total Itens</h4>
-                    <div class="value" id="res-total-itens">0</div>
-                </div>
-                <div class="summary-box" onclick="showSection('compras')">
-                    <h4>Comprados</h4>
-                    <div class="value" id="res-comprados">0</div>
-                </div>
-                <div class="summary-box" onclick="showSpendingDetails()">
-                    <h4>Gasto Total</h4>
+                <div class="summary-box pastel-pink" onclick="showSpendingDetails()">
+                    <div class="icon-box"><i data-lucide="bar-chart"></i></div>
                     <div class="value" id="res-gasto-total">R$ 0,00</div>
+                    <h4>Gasto Total</h4>
+                    <p class="trend">+8% na semana</p>
                 </div>
-                <div class="summary-box" onclick="showSavingsDetails()">
+                <div class="summary-box pastel-yellow" onclick="showSection('compras')">
+                    <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
+                    <div class="value" id="res-total-itens">0</div>
+                    <h4>Total Itens</h4>
+                    <p class="trend">+5% na semana</p>
+                </div>
+                <div class="summary-box pastel-green" onclick="showSavingsDetails()">
+                    <div class="icon-box"><i data-lucide="tag"></i></div>
+                    <div class="value" id="res-economia">R$ 0,00</div>
                     <h4>Economia</h4>
-                    <div class="value" id="res-economia" style="color: var(--success);">R$ 0,00</div>
+                    <p class="trend">+1,2% na semana</p>
+                </div>
+                <div class="summary-box pastel-purple" onclick="showSection('compras')">
+                    <div class="icon-box"><i data-lucide="users"></i></div>
+                    <div class="value" id="res-comprados">0</div>
+                    <h4>Comprados</h4>
+                    <p class="trend">+0,5% na semana</p>
                 </div>
             </div>
             
@@ -1035,12 +1093,68 @@
         let state = {
             budget: 0,
             markets: [
-                {name: "", lat: null, lon: null},
+                {name: "Supermercado Principal", lat: null, lon: null},
                 {name: "", lat: null, lon: null},
                 {name: "", lat: null, lon: null},
                 {name: "", lat: null, lon: null}
             ],
-            products: [],
+            products: [
+                {
+                    id: "default-1",
+                    codigo_barras: "0000000000001",
+                    nome: "Pao de Hamburguer Plus",
+                    marca: "Geral",
+                    imagem_url: "",
+                    mercado_id: 0,
+                    preco: 16.79,
+                    comprado: false,
+                    data_cadastro: new Date().toISOString()
+                },
+                {
+                    id: "default-2",
+                    codigo_barras: "0000000000002",
+                    nome: "Hamb Maturatta Pic180G",
+                    marca: "Geral",
+                    imagem_url: "",
+                    mercado_id: 0,
+                    preco: 16.78,
+                    comprado: false,
+                    data_cadastro: new Date().toISOString()
+                },
+                {
+                    id: "default-3",
+                    codigo_barras: "0000000000003",
+                    nome: "Batata Mccain 1.05kg",
+                    marca: "Geral",
+                    imagem_url: "",
+                    mercado_id: 0,
+                    preco: 25.99,
+                    comprado: false,
+                    data_cadastro: new Date().toISOString()
+                },
+                {
+                    id: "default-4",
+                    codigo_barras: "0000000000004",
+                    nome: "Azeitona Verde c/ Caro",
+                    marca: "Geral",
+                    imagem_url: "",
+                    mercado_id: 0,
+                    preco: 9.45,
+                    comprado: false,
+                    data_cadastro: new Date().toISOString()
+                },
+                {
+                    id: "default-5",
+                    codigo_barras: "0000000000005",
+                    nome: "Salame Hamburgues Sear",
+                    marca: "Geral",
+                    imagem_url: "",
+                    mercado_id: 0,
+                    preco: 23.13,
+                    comprado: false,
+                    data_cadastro: new Date().toISOString()
+                }
+            ],
             isScannerActive: false,
             currentScanned: null,
             activeMarketIndex: null,
@@ -1201,7 +1315,23 @@
             }
 
             if (saved) {
-                state = {...state, ...JSON.parse(saved)};
+                const parsed = JSON.parse(saved);
+                const defaultProducts = state.products;
+                
+                state = {...state, ...parsed};
+                
+                // Ensure default products exist in the loaded state
+                defaultProducts.forEach(dp => {
+                    if (!state.products.find(p => p.codigo_barras === dp.codigo_barras)) {
+                        state.products.push(dp);
+                    }
+                });
+
+                // Ensure the default market name exists if it was empty
+                if (state.markets[0].name === "") {
+                    state.markets[0].name = "Supermercado Principal";
+                }
+
                 setTimeout(() => setViewMode(state.viewMode || 'normal'), 100);
             }
         }
@@ -1843,17 +1973,17 @@
             rankingList.innerHTML = uniqueProds.map(best => `
                 <div class="ranking-card">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 35px; height: 35px; background: var(--bg-card); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <div class="icon-circle" style="width: 35px; height: 35px; background: var(--bg-card); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="tag" size="16" style="color: var(--accent);"></i>
                         </div>
                          <div>
                              <div style="font-weight: bold; font-size: 14px;">${e(best.nome)}</div>
-                             <div style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
+                             <div class="market-name" style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
                          </div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-weight: 800; font-size: 16px;">${fCurr(best.preco)}</div>
-                        <div style="font-size: 9px; color: var(--text-dim);">Menor Preço</div>
+                        <div class="price-label" style="font-size: 9px; color: var(--text-dim);">Menor Preço</div>
                     </div>
                 </div>
             `).join('');
