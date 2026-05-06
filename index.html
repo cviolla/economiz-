@@ -49,39 +49,33 @@
 
     <style>
         :root {
+            --bg-deep: #F5F5F7;
+            --bg-nav: rgba(255, 255, 255, 0.95);
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #FAFAFA;
+            --text-main: #1A1A1F;
+            --text-dim: #6E6E73;
+            --accent: #E5B800;
+            --success: #00A843;
+            --border: rgba(0, 0, 0, 0.05);
+            --radius: 24px;
+            --glass-blur: blur(12px);
+            --modal-bg: rgba(245, 245, 247, 0.95);
+            --text-price: #1A1A1F;
+        }
+
+        body.dark-mode {
             --bg-deep: #0F0F12;
             --bg-nav: rgba(15, 15, 18, 0.8);
             --bg-card: rgba(255, 255, 255, 0.05);
             --bg-card-hover: rgba(255, 255, 255, 0.08);
-            --accent: #FFCC00;
-            --accent-glow: rgba(255, 204, 0, 0.3);
             --text-main: #FFFFFF;
             --text-dim: #A0A0A5;
+            --accent: #FFCC00;
             --success: #00E676;
-            --error: #FF5252;
-            --warning: #FFAB40;
             --border: rgba(255, 255, 255, 0.1);
-            --text-price: #FFFFFF;
-            --radius: 20px;
-            --glass-blur: blur(12px);
             --modal-bg: rgba(26, 26, 31, 0.9);
-        }
-
-        body.light-mode {
-            --bg-deep: #F5F5F7;
-            --bg-nav: rgba(255, 255, 255, 0.8);
-            --bg-card: rgba(0, 0, 0, 0.04);
-            --bg-card-hover: rgba(0, 0, 0, 0.07);
-            --bg-subtle: rgba(0, 0, 0, 0.03);
-            --text-main: #1A1A1F;
-            --text-dim: #6E6E73;
-            --accent: #E5B800;
-            --accent-glow: rgba(229, 184, 0, 0.25);
-            --border: rgba(0, 0, 0, 0.10);
-            --success: #00A843;
-            --error: #D32F2F;
-            --text-price: #000000;
-            --modal-bg: rgba(245, 245, 247, 0.95);
+            --text-price: #FFFFFF;
         }
 
         body.light-mode .btn-buy,
@@ -724,28 +718,16 @@
 
         /* --- Utilities --- */
         .hide { display: none !important; }
-        
-        /* --- Modern Dashboard Overhaul --- */
-        body.light-mode {
-            --bg-deep: #F5F5F7;
-            --bg-nav: rgba(255, 255, 255, 0.95);
-            --bg-card: #FFFFFF;
-            --bg-card-hover: #FAFAFA;
-            --text-main: #1A1A1F;
-            --text-dim: #6E6E73;
-            --accent: #E5B800;
-            --success: #00A843;
-            --border: rgba(0, 0, 0, 0.05);
-        }
-        body.light-mode .budget-card, 
-        body.light-mode .product-card,
-        body.light-mode .summary-box,
-        body.light-mode .ranking-card {
+         /* --- Modern Dashboard Overhaul --- */
+        .budget-card, 
+        .product-card,
+        .summary-box,
+        .ranking-card {
             box-shadow: 0 8px 24px rgba(0,0,0,0.04);
             border: 1px solid rgba(0,0,0,0.03);
             border-radius: 24px;
         }
-        body.light-mode header .brand { font-size: 24px !important; }
+        header .brand { font-size: 24px !important; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .summary-box { 
             display: flex; flex-direction: column; justify-content: flex-end; 
@@ -768,12 +750,12 @@
         .pastel-purple { background: #E5E5FF; }
         .pastel-purple .icon-box i { color: #6B66FF; }
 
-        body.light-mode .ranking-card { background: linear-gradient(135deg, #FF4B72, #FF7B93); color: white; border: none; }
-        body.light-mode .ranking-card:nth-child(even) { background: linear-gradient(135deg, #6B66FF, #8B86FF); }
-        body.light-mode .ranking-card .market-name { color: rgba(255,255,255,0.9) !important; }
-        body.light-mode .ranking-card .price-label { color: rgba(255,255,255,0.7) !important; }
-        body.light-mode .ranking-card .icon-circle { background: rgba(255,255,255,0.2) !important; }
-        body.light-mode .ranking-card .icon-circle i { color: #FFFFFF !important; }
+        .ranking-card { background: linear-gradient(135deg, #FF4B72, #FF7B93); color: white; border: none; }
+        .ranking-card:nth-child(even) { background: linear-gradient(135deg, #6B66FF, #8B86FF); }
+        .ranking-card .market-name { color: rgba(255,255,255,0.9) !important; }
+        .ranking-card .price-label { color: rgba(255,255,255,0.7) !important; }
+        .ranking-card .icon-circle { background: rgba(255,255,255,0.2) !important; }
+        .ranking-card .icon-circle i { color: #FFFFFF !important; }rtant; }
     </style>
 </head>
 <body>
@@ -787,7 +769,7 @@
                 </div>
                 <div class="brand-section">
                     <h1 class="brand" style="font-size: 20px; line-height: 1.1; font-weight: 800;">economiz+</h1>
-                    <span style="font-size: 9px; color: var(--text-dim); opacity: 0.6; letter-spacing: 0.5px;">v1.2.5</span>
+                    <span style="font-size: 9px; color: var(--text-dim); opacity: 0.6; letter-spacing: 0.5px;">v1.3.0</span>
                 </div>
             </div>
 
