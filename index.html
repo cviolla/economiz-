@@ -960,8 +960,9 @@
                 <!-- Basket totals will be injected here -->
             </div>
 
-            <h3 style="margin-bottom: 15px;">Melhores Preços</h3>
-            <div id="ranking-list">
+             <h3 style="margin-bottom: 15px;">Melhores Preços</h3>
+             <button onclick="clearBest()" style="margin-bottom: 10px;background:#ff4c4c;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Limpar</button>
+             <div id="ranking-list">
                 <!-- Ranking items -->
             </div>
         </section>
@@ -1106,63 +1107,7 @@
                 {name: "", lat: null, lon: null},
                 {name: "", lat: null, lon: null}
             ],
-            products: [
-                {
-                    id: "default-1",
-                    codigo_barras: "0000000000001",
-                    nome: "Pao de Hamburguer Plus",
-                    marca: "Geral",
-                    imagem_url: "",
-                    mercado_id: 0,
-                    preco: 16.79,
-                    comprado: false,
-                    data_cadastro: new Date().toISOString()
-                },
-                {
-                    id: "default-2",
-                    codigo_barras: "0000000000002",
-                    nome: "Hamb Maturatta Pic180G",
-                    marca: "Geral",
-                    imagem_url: "",
-                    mercado_id: 0,
-                    preco: 16.78,
-                    comprado: false,
-                    data_cadastro: new Date().toISOString()
-                },
-                {
-                    id: "default-3",
-                    codigo_barras: "0000000000003",
-                    nome: "Batata Mccain 1.05kg",
-                    marca: "Geral",
-                    imagem_url: "",
-                    mercado_id: 0,
-                    preco: 25.99,
-                    comprado: false,
-                    data_cadastro: new Date().toISOString()
-                },
-                {
-                    id: "default-4",
-                    codigo_barras: "0000000000004",
-                    nome: "Azeitona Verde c/ Caro",
-                    marca: "Geral",
-                    imagem_url: "",
-                    mercado_id: 0,
-                    preco: 9.45,
-                    comprado: false,
-                    data_cadastro: new Date().toISOString()
-                },
-                {
-                    id: "default-5",
-                    codigo_barras: "0000000000005",
-                    nome: "Salame Hamburgues Sear",
-                    marca: "Geral",
-                    imagem_url: "",
-                    mercado_id: 0,
-                    preco: 23.13,
-                    comprado: false,
-                    data_cadastro: new Date().toISOString()
-                }
-            ],
+            products: [],
             isScannerActive: false,
             currentScanned: null,
             activeMarketIndex: null,
@@ -1324,19 +1269,10 @@
 
             if (saved) {
                 const parsed = JSON.parse(saved);
-                const defaultProducts = state.products;
-                
                 state = {...state, ...parsed};
                 
-                // Ensure default products exist in the loaded state
-                defaultProducts.forEach(dp => {
-                    if (!state.products.find(p => p.codigo_barras === dp.codigo_barras)) {
-                        state.products.push(dp);
-                    }
-                });
-
                 // Ensure the default market name exists if it was empty
-                if (state.markets[0].name === "") {
+                if (state.markets && state.markets[0] && state.markets[0].name === "") {
                     state.markets[0].name = "Supermercado Principal";
                 }
 
@@ -1769,6 +1705,7 @@
             persist();
             renderProducts();
             updateBudgetUI();
+            updateSummary(); // Atualiza ranking e resumo
             closeModal('modal-product');
         }
 
@@ -1783,6 +1720,7 @@
                 renderProducts();
                 renderMarkets(); // Atualiza os gastos exibidos nos labels
                 updateBudgetUI();
+                updateSummary(); // Atualiza economia total no resumo
             }
         }
 
@@ -1792,6 +1730,7 @@
             persist();
             renderProducts();
             updateBudgetUI();
+            updateSummary(); // Essencial para o ranking atualizar após exclusão manual
         }
 
         function onSearchChange(val) {
@@ -1979,19 +1918,24 @@
             });
 
             rankingList.innerHTML = uniqueProds.map(best => `
-                <div class="ranking-card">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="icon-circle" style="width: 35px; height: 35px; background: var(--bg-card); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <div class="ranking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                        <div class="icon-circle" style="width: 35px; height: 35px; background: var(--bg-card); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i data-lucide="tag" size="16" style="color: var(--accent);"></i>
                         </div>
-                         <div>
-                             <div style="font-weight: bold; font-size: 14px;">${e(best.nome)}</div>
+                         <div style="flex: 1; min-width: 0;">
+                             <div style="font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${e(best.nome)}</div>
                              <div class="market-name" style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || "Mercado"}</div>
                          </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 800; font-size: 16px;">${fCurr(best.preco)}</div>
-                        <div class="price-label" style="font-size: 9px; color: var(--text-dim);">Menor Preço</div>
+                    <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px;">${fCurr(best.preco)}</div>
+                            <div class="price-label" style="font-size: 9px; color: var(--text-dim);">Menor Preço</div>
+                        </div>
+                        <button onclick="rejectProduct('${best.id}')" style="background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">
+                            <i data-lucide="trash-2" size="14"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -2105,6 +2049,15 @@
         function clearSearch() {
             document.getElementById('main-search').value = "";
             onSearchChange("");
+        }
+
+        function clearBest() {
+            if (!confirm("Tem certeza que deseja apagar TODOS os produtos e preços cadastrados? Esta ação não pode ser desfeita.")) return;
+            state.products = [];
+            persist();
+            renderProducts();
+            updateSummary();
+            alert("Base de dados limpa com sucesso.");
         }
 
         document.getElementById('btn-set-budget').onclick = () => {
