@@ -193,7 +193,7 @@
         .app-container {
             max-width: 500px;
             margin: 0 auto;
-            padding-bottom: 160px; /* Aumentado para evitar sobreposição da nav bar */
+            padding-bottom: 120px; 
         }
 
         header {
@@ -392,7 +392,7 @@
         /* --- Sections --- */
         .section {
             display: none;
-            padding: 0 20px 140px; /* Adicionado padding inferior para scroll acima da nav */
+            padding: 0 20px 100px; 
             animation: fadeIn 0.4s ease;
         }
 
@@ -794,6 +794,9 @@
 
     <div class="app-container">
         <header>
+            <!-- Coluna de equilíbrio (vazia) -->
+            <div style="grid-column: 1;"></div>
+
             <!-- Grupo da Marca: Logo + Nome (Centralizado) -->
             <div class="brand-group">
                 <div class="brand-logo">
@@ -1120,31 +1123,31 @@
             activeMarketIndex: null,
             viewMode: 'normal',
             searchQuery: "",
-            comparisonMode: 'keyword' // 'barcode' ou 'keyword'
+            comparisonMode: 'keyword'
         };
 
         // --- Normalização para Comparação ---
         function getGroupKey(p) {
-            // Se o modo de comparação for por código de barras e ele existir, usa ele.
             if (state.comparisonMode === 'barcode' && p.codigo_barras && p.codigo_barras.length >= 8 && !p.codigo_barras.startsWith('MANUAL-')) {
                 return p.codigo_barras;
             }
+            
+            const stopWords = ['de', 'com', 'do', 'da', 'em', 'para', 'kg', 'g', 'ml', 'un', 'litro', 'litros', 'gramas', 'unidade', 'unidades', 'integral', 'desnatado', 'sem', 'com'];
             
             // Normalização Robusta por Palavras-Chave (Nome + Marca)
             const base = (p.nome + " " + (p.marca || "")).toLowerCase()
                     .normalize("NFD")
                     .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-                    .replace(/[^a-z0-9\s]/g, "")    // Remove caracteres especiais
+                    .replace(/[^a-z0-9\s]/g, " ")    // Troca especiais por espaço
                     .trim();
             
             const words = base.split(/\s+/)
-                    .filter(word => word.length > 2) // Remove palavras curtas
-                    .map(word => word.replace(/s$/, "")); // Heurística singular
+                    .filter(word => word.length > 2 && !stopWords.includes(word)) 
+                    .map(word => word.replace(/s$/, "")); // Heurística singular básica
 
-            // Retorna as 4 primeiras palavras ordenadas
+            // Retorna as 4 primeiras palavras significativas ordenadas para comparação
             return words.slice(0, 4).sort().join("");
         }
-
         function toggleComparisonMode(mode) {
             state.comparisonMode = mode;
             persist();
@@ -1292,7 +1295,7 @@
             document.getElementById('modal-drill-savings').style.display = 'flex';
         }
 
-        function loadState() {
+        async function loadState() {
             // Migração: Verifica chave antiga com erro de digitação
             const oldKey = 'ecozomiz_state';
             const newKey = 'economiz_state';
@@ -1313,9 +1316,35 @@
                 if (state.markets && state.markets[0] && state.markets[0].name === "") {
                     state.markets[0].name = "Supermercado Principal";
                 }
-
-                setTimeout(() => setViewMode(state.viewMode || 'normal'), 100);
             }
+
+            // Sync from Supabase
+            if (db) {
+                try {
+                    const { data: products } = await db.from('produtos').select('*');
+                    const { data: markets } = await db.from('mercados').select('*');
+                    const { data: budget } = await db.from('orcamento').select('*').limit(1);
+                    
+                    if (products && products.length > 0) state.products = products;
+                    if (markets && markets.length > 0) {
+                        markets.forEach(m => {
+                            if (state.markets[m.id]) {
+                                state.markets[m.id] = { name: m.nome, lat: m.lat, lon: m.long };
+                            }
+                        });
+                    }
+                    if (budget && budget[0]) state.budget = budget[0].valor_total;
+                    
+                    renderProducts();
+                    renderMarkets();
+                    updateBudgetUI();
+                    updateSummary();
+                } catch (e) {
+                    console.error('Falha ao carregar do Supabase:', e);
+                }
+            }
+
+            setTimeout(() => setViewMode(state.viewMode || 'normal'), 100);
         }
 
         function setViewMode(mode) {
@@ -1336,7 +1365,31 @@
         function persist() {
             localStorage.setItem('economiz_state', JSON.stringify(state));
             if (db) {
-                // Background sync logic placeholder
+                syncToSupabase();
+            }
+        }
+
+        async function syncToSupabase() {
+            if (!db) return;
+            try {
+                // Sync Markets
+                const marketsToSync = state.markets.map((m, i) => ({
+                    id: i,
+                    nome: m.name,
+                    lat: m.lat,
+                    long: m.lon
+                }));
+                await db.from('mercados').upsert(marketsToSync);
+
+                // Sync Products
+                if (state.products.length > 0) {
+                    await db.from('produtos').upsert(state.products);
+                }
+
+                // Sync Budget
+                await db.from('orcamento').upsert([{ id: 1, valor_total: state.budget, user_id: 'default' }]);
+            } catch (e) {
+                console.error('Erro sync Supabase:', e);
             }
         }
 
@@ -1413,18 +1466,20 @@
                     .reduce((acc, p) => acc + p.preco, 0);
 
                 return `
-                    <div class="form-group" style="background: var(--bg-card); padding: 12px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label style="margin-bottom: 0; font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 800;">
-                                Mercado ${i + 1} • <span style="color: var(--accent);">${fCurr(spent)}</span>
-                            </label>
-                            <button class="btn" style="width: auto; padding: 6px 12px; font-size: 11px; background: var(--accent); color: #000; font-weight: 800; border-radius: 8px; flex-shrink: 0; min-width: 140px; box-shadow: 0 4px 12px var(--accent-glow);" onclick="openCheckIn(${i})">
-                                <i data-lucide="map-pin" size="12" style="margin-right: 4px;"></i> ONDE VOCÊ ESTÁ?
+                    <div class="market-setup-card" style="background: var(--bg-card); padding: 16px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-atm);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;">
+                                    Mercado ${i + 1} • <span style="color: var(--success);">${fCurr(spent)}</span>
+                                </label>
+                                <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || ''}" placeholder="Nome do mercado" 
+                                       style="background: transparent; border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 5px 0; font-weight: 700; font-size: 16px;"
+                                       oninput="updateMarketName(${i}, this.value)">
+                            </div>
+                            <button class="btn" style="width: auto; padding: 8px 12px; font-size: 10px; background: var(--accent); color: #000; font-weight: 800; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 12px var(--accent-glow);" onclick="openCheckIn(${i})">
+                                <i data-lucide="map-pin" size="12" style="margin-right: 4px;"></i> LOCALIZAR
                             </button>
                         </div>
-                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || ''}" placeholder="Nome do mercado" 
-                               style="background: rgba(255,255,255,0.03); border-style: dashed; pointer-events: auto;"
-                               oninput="updateMarketName(${i}, this.value)">
                     </div>
                 `;
             }).join('');
