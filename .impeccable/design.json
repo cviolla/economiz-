@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-08T21:40:00.000Z",
+  "title": "Design System: economiz+",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Amarelo Economiz+", "canonical": "#FFCC00" },
+      "success": { "role": "success", "displayName": "Verde Vitória", "canonical": "#00E676" },
+      "neutral-bg": { "role": "neutral", "displayName": "Deep Slate", "canonical": "#0F0F12" },
+      "pastel-pink": { "role": "semantic", "displayName": "Economia Pink", "canonical": "#FFE5E5" },
+      "pastel-yellow": { "role": "semantic", "displayName": "Aviso Yellow", "canonical": "#FFF9E5" },
+      "pastel-green": { "role": "semantic", "displayName": "Sucesso Green", "canonical": "#E8F5E9" },
+      "pastel-purple": { "role": "semantic", "displayName": "Info Purple", "canonical": "#EDE7F6" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Outfit", "purpose": "Títulos e valores de destaque." },
+      "body": { "displayName": "Inter", "purpose": "Textos de interface e dados." }
+    },
+    "shadows": [
+      { "name": "atmospheric-glow", "value": "var(--shadow-atm)", "purpose": "Sombra padrão para cards e botões." }
+    ],
+    "motion": [
+      { "name": "fade-in-slide", "value": "fadeIn 0.4s ease", "purpose": "Entrada suave de seções." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "500px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão Primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botão de ação principal, usado para compras ou confirmações.",
+      "html": "<button class=\"ds-btn-primary\">COMPRAR AGORA</button>",
+      "css": ".ds-btn-primary { background: #FFCC00; color: #000; padding: 10px 15px; border-radius: 12px; border: none; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif; } .ds-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }"
+    },
+    {
+      "name": "Card de Produto",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "Container principal para exibição de itens e comparativos.",
+      "html": "<div class=\"ds-card-product\"><h4>Produto Exemplo</h4><p>R$ 10,00</p></div>",
+      "css": ".ds-card-product { background: rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-family: 'Inter', sans-serif; }"
+    },
+    {
+      "name": "Summary Box",
+      "kind": "card",
+      "refersTo": "summary-box",
+      "description": "Box de resumo para métricas financeiras com cores pastéis.",
+      "html": "<div class=\"ds-summary-box pastel-green\"><h4>Economia</h4><div class=\"value\">R$ 50,00</div></div>",
+      "css": ".ds-summary-box { display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; border-radius: 24px; min-height: 140px; position: relative; overflow: hidden; border: none; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.04); font-family: 'Inter', sans-serif; } .pastel-green { background: #E8F5E9; } .ds-summary-box h4 { font-size: 13px; font-weight: 600; color: #1A1A1F; margin-bottom: 5px; } .ds-summary-box .value { font-size: 24px; font-weight: 800; color: #1A1A1F; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Economia Vibrante",
+    "overview": "O economiz+ equilibra a precisão técnica com uma energia premium, usando o Amarelo Economiz+ como guia visual e glassmorphism para profundidade.",
+    "keyCharacteristics": [
+      "Agilidade Visual",
+      "Hierarquia Atmosférica",
+      "Contraste de Decisão"
+    ],
+    "rules": [
+      { "name": "The 10% Gold Rule", "body": "O amarelo é usado em no máximo 10% da tela.", "section": "colors" }
+    ],
+    "dos": [
+      "Do usar o raio de 24px para cards principais.",
+      "Do priorizar o contraste do Amarelo Economiz+."
+    ],
+    "donts": [
+      "Don't usar bordas pretas puras ou sombras pesadas.",
+      "Don't poluir a interface com muitos elementos."
+    ]
+  }
+}

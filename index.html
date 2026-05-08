@@ -55,11 +55,15 @@
             --bg-card-hover: #FAFAFA;
             --text-main: #1A1A1F;
             --text-dim: #6E6E73;
-            --accent: #E5B800;
-            --success: #00A843;
+            --accent: #FFCC00;
+            --accent-glow: rgba(255, 204, 0, 0.2);
+            --success: #00E676;
+            --error: #FF5252;
             --border: rgba(0, 0, 0, 0.05);
-            --radius: 24px;
-            --glass-blur: blur(12px);
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            --glass-blur: blur(16px);
+            --shadow-atm: 0 8px 24px rgba(0,0,0,0.04);
             --modal-bg: rgba(245, 245, 247, 0.95);
             --text-price: #1A1A1F;
         }
@@ -72,10 +76,13 @@
             --text-main: #FFFFFF;
             --text-dim: #A0A0A5;
             --accent: #FFCC00;
+            --accent-glow: rgba(255, 204, 0, 0.3);
             --success: #00E676;
+            --error: #FF5252;
             --border: rgba(255, 255, 255, 0.1);
-            --modal-bg: rgba(26, 26, 31, 0.9);
+            --modal-bg: rgba(15, 15, 18, 0.9);
             --text-price: #FFFFFF;
+            --shadow-atm: 0 8px 24px rgba(0,0,0,0.2);
         }
 
         body.light-mode .btn-buy,
@@ -142,18 +149,23 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: pan-y;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-deep);
             color: var(--text-main);
             overflow-x: hidden;
-            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        input, textarea, select {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
         }
 
         h1, h2, h3, .brand {
@@ -181,7 +193,7 @@
         .app-container {
             max-width: 500px;
             margin: 0 auto;
-            padding-bottom: 140px; /* Aumentado para evitar sobreposição da nav bar */
+            padding-bottom: 160px; /* Aumentado para evitar sobreposição da nav bar */
         }
 
         header {
@@ -201,10 +213,7 @@
             gap: 12px;
         }
 
-        .brand-section {
-            display: flex;
-            flex-direction: column;
-        }
+
 
         .brand-logo {
             width: 42px;
@@ -235,7 +244,7 @@
             border: 1px solid var(--border);
             backdrop-filter: var(--glass-blur);
             padding: 15px 20px;
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             margin: 0 20px 15px;
             display: flex;
             align-items: center;
@@ -383,7 +392,7 @@
         /* --- Sections --- */
         .section {
             display: none;
-            padding: 0 20px;
+            padding: 0 20px 140px; /* Adicionado padding inferior para scroll acima da nav */
             animation: fadeIn 0.4s ease;
         }
 
@@ -401,7 +410,7 @@
             width: 100%;
             height: 250px;
             background: #000;
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             overflow: hidden;
             position: relative;
             margin-bottom: 20px;
@@ -434,7 +443,7 @@
         /* --- Cards & List --- */
         .product-card {
             background: var(--bg-card);
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             padding: 12px;
             margin-bottom: 10px;
             border: 1px solid var(--border);
@@ -600,7 +609,7 @@
 
         .summary-box {
             background: var(--bg-card);
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             padding: 12px 15px;
             border: 1px solid var(--border);
             cursor: pointer;
@@ -729,21 +738,18 @@
 
         /* --- Utilities --- */
         .hide { display: none !important; }
-         /* --- Modern Dashboard Overhaul --- */
-        .budget-card, 
-        .product-card,
-        .summary-box,
         .ranking-card {
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            border: 1px solid rgba(0,0,0,0.03);
-            border-radius: 24px;
+            box-shadow: var(--shadow-atm);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
         }
         header .brand { font-size: 24px !important; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .summary-box { 
             display: flex; flex-direction: column; justify-content: flex-end; 
-            padding: 20px; border-radius: 24px; min-height: 140px; position: relative; overflow: hidden; border: none;
+            padding: 20px; border-radius: var(--radius-lg); min-height: 140px; position: relative; overflow: hidden; border: none;
             text-align: left;
+            box-shadow: var(--shadow-atm);
         }
         .summary-box h4 { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #1A1A1F; text-transform: none; }
         .summary-box .value { font-size: 24px; font-weight: 800; color: #1A1A1F; margin-bottom: 5px; }
@@ -810,7 +816,7 @@
                     <i data-lucide="download-cloud"></i>
                 </button>
                 <button class="btn-reject" style="background: none; border: none; color: var(--accent); padding: 5px;" id="btn-toggle-theme" title="Alternar Tema">
-
+                    <i id="theme-icon" data-lucide="moon"></i>
                 </button>
                 <button class="btn-reject" style="background: none; border: none; color: var(--accent); padding: 5px;" id="btn-set-budget">
                     <i data-lucide="settings"></i>
@@ -955,7 +961,8 @@
                 </div>
             </div>
             
-            <h3 style="margin-top: 30px; margin-bottom: 15px;">Comparativo de Mercados</h3>
+            <div id="resumo-comparison-selector"></div>
+            <h3 style="margin-top: 15px; margin-bottom: 15px;">Comparativo de Mercados</h3>
             <div id="basket-comparison" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px;">
                 <!-- Basket totals will be injected here -->
             </div>
@@ -1112,10 +1119,38 @@
             currentScanned: null,
             activeMarketIndex: null,
             viewMode: 'normal',
-            searchQuery: ""
+            searchQuery: "",
+            comparisonMode: 'keyword' // 'barcode' ou 'keyword'
         };
 
-        // --- Initialization ---
+        // --- Normalização para Comparação ---
+        function getGroupKey(p) {
+            // Se o modo de comparação for por código de barras e ele existir, usa ele.
+            if (state.comparisonMode === 'barcode' && p.codigo_barras && p.codigo_barras.length >= 8 && !p.codigo_barras.startsWith('MANUAL-')) {
+                return p.codigo_barras;
+            }
+            
+            // Normalização Robusta por Palavras-Chave (Nome + Marca)
+            const base = (p.nome + " " + (p.marca || "")).toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+                    .replace(/[^a-z0-9\s]/g, "")    // Remove caracteres especiais
+                    .trim();
+            
+            const words = base.split(/\s+/)
+                    .filter(word => word.length > 2) // Remove palavras curtas
+                    .map(word => word.replace(/s$/, "")); // Heurística singular
+
+            // Retorna as 4 primeiras palavras ordenadas
+            return words.slice(0, 4).sort().join("");
+        }
+
+        function toggleComparisonMode(mode) {
+            state.comparisonMode = mode;
+            persist();
+            renderProducts();
+            if (document.getElementById('resumo').classList.contains('active')) updateSummary();
+        }
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             loadState();
@@ -1124,6 +1159,8 @@
             renderQuickSelectors();
             updateBudgetUI();
             renderProducts();
+
+            document.getElementById('btn-toggle-theme').onclick = toggleTheme;
             
             // Registro do Service Worker para PWA
             if ('serviceWorker' in navigator) {
@@ -1217,14 +1254,15 @@
             
             const grouped = {};
             state.products.forEach(p => {
-                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
-                grouped[p.codigo_barras].push(p);
+                const key = getGroupKey(p);
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(p);
             });
 
             const itemsWithSavings = state.products
                 .filter(p => p.comprado)
                 .map(p => {
-                    const brothers = grouped[p.codigo_barras];
+                    const brothers = grouped[getGroupKey(p)];
                     const maxP = Math.max(...brothers.map(b => b.preco));
                     const economy = maxP - p.preco;
                     return { ...p, economy };
@@ -1375,16 +1413,18 @@
                     .reduce((acc, p) => acc + p.preco, 0);
 
                 return `
-                    <div class="form-group">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label style="margin-bottom: 0; font-size: 11px; text-transform: uppercase; color: var(--text-dim);">
-                                Mercado ${i + 1} • <span style="color: var(--accent); font-weight: 800;">${fCurr(spent)}</span>
+                    <div class="form-group" style="background: var(--bg-card); padding: 12px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="margin-bottom: 0; font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 800;">
+                                Mercado ${i + 1} • <span style="color: var(--accent);">${fCurr(spent)}</span>
                             </label>
-                            <button class="btn" style="width: auto; padding: 2px 8px; font-size: 11px; background: rgba(0,230,118,0.1); color: #00E676;" onclick="openCheckIn(${i})">
-                                <i data-lucide="map-pin" size="10"></i> Check-in
+                            <button class="btn" style="width: auto; padding: 6px 12px; font-size: 11px; background: var(--accent); color: #000; font-weight: 800; border-radius: 8px; flex-shrink: 0; min-width: 140px; box-shadow: 0 4px 12px var(--accent-glow);" onclick="openCheckIn(${i})">
+                                <i data-lucide="map-pin" size="12" style="margin-right: 4px;"></i> ONDE VOCÊ ESTÁ?
                             </button>
                         </div>
-                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || ''}" placeholder="Nome do mercado" oninput="updateMarketName(${i}, this.value)">
+                        <input type="text" class="form-control market-input" data-index="${i}" value="${m.name || ''}" placeholder="Nome do mercado" 
+                               style="background: rgba(255,255,255,0.03); border-style: dashed; pointer-events: auto;"
+                               oninput="updateMarketName(${i}, this.value)">
                     </div>
                 `;
             }).join('');
@@ -1738,9 +1778,25 @@
             renderProducts();
         }
 
+        function renderComparisonSelector() {
+            return `
+                <div style="display: flex; gap: 8px; margin-bottom: 15px; background: var(--bg-card); padding: 4px; border-radius: 12px; border: 1px solid var(--border);">
+                    <button onclick="toggleComparisonMode('barcode')" style="flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; background: ${state.comparisonMode === 'barcode' ? 'var(--accent)' : 'transparent'}; color: ${state.comparisonMode === 'barcode' ? '#000' : 'var(--text-dim)'};">
+                        CÓDIGO DE BARRAS
+                    </button>
+                    <button onclick="toggleComparisonMode('keyword')" style="flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; background: ${state.comparisonMode === 'keyword' ? 'var(--accent)' : 'transparent'}; color: ${state.comparisonMode === 'keyword' ? '#000' : 'var(--text-dim)'};">
+                        PALAVRAS-CHAVE
+                    </button>
+                </div>
+            `;
+        }
+
         function renderProducts() {
             const list = document.getElementById('product-list');
             const query = state.searchQuery || "";
+
+            // Injetar seletor de modo se houver produtos
+            const selectorHtml = state.products.length > 0 ? renderComparisonSelector() : '';
             
             // Filtro Inteligente
             const filtered = state.products.filter(p => {
@@ -1752,7 +1808,7 @@
             if (filtered.length === 0) {
                 const msg = state.products.length === 0 ? "Nenhum produto cadastrado." : `Nenhum item encontrado para "${document.getElementById('main-search').value}"`;
                 const icon = state.products.length === 0 ? "package-search" : "search-x";
-                list.innerHTML = `
+                list.innerHTML = selectorHtml + `
                     <div style="text-align: center; color: var(--text-dim); padding: 40px 20px;">
                         <i data-lucide="${icon}" size="48" style="opacity: 0.3;"></i>
                         <p style="margin-top: 15px;">${msg}</p>
@@ -1763,15 +1819,23 @@
                 return;
             }
 
-            // Group by barcode to compare prices
+            // Group by barcode OR keyword to compare prices
             const grouped = {};
             state.products.forEach(p => {
-                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
-                grouped[p.codigo_barras].push(p);
+                const key = getGroupKey(p);
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(key); // Na verdade queremos guardar o objeto p
+            });
+            // Ops, corrigindo o erro acima
+            const groupedCorrect = {};
+            state.products.forEach(p => {
+                const key = getGroupKey(p);
+                if (!groupedCorrect[key]) groupedCorrect[key] = [];
+                groupedCorrect[key].push(p);
             });
 
-            list.innerHTML = filtered.slice().reverse().map(p => {
-                const brothers = grouped[p.codigo_barras];
+            const productsHtml = filtered.slice().reverse().map(p => {
+                const brothers = groupedCorrect[getGroupKey(p)];
                 const minPrice = Math.min(...brothers.map(b => b.preco));
                 const maxPrice = Math.max(...brothers.map(b => b.preco));
                 const economy = maxPrice - p.preco;
@@ -1827,23 +1891,25 @@
                     </div>
                 `;
             }).join('');
+
+            list.innerHTML = selectorHtml + productsHtml;
             lucide.createIcons();
         }
 
         // --- Summary Logic ---
         function updateSummary() {
+            // Renderiza o seletor no resumo também
+            const selectorContainer = document.getElementById('resumo-comparison-selector');
+            if (selectorContainer) selectorContainer.innerHTML = renderComparisonSelector();
+
             const comprados = state.products.filter(p => p.comprado);
             const gastoTotal = comprados.reduce((acc, p) => acc + p.preco, 0);
-            
             let economiaTotal = 0;
-            const grouped = {};
-            state.products.forEach(p => {
-                if (!grouped[p.codigo_barras]) grouped[p.codigo_barras] = [];
-                grouped[p.codigo_barras].push(p);
-            });
-
+            
             comprados.forEach(p => {
-                const maxP = Math.max(...grouped[p.codigo_barras].map(b => b.preco));
+                const key = getGroupKey(p);
+                const brothers = state.products.filter(x => getGroupKey(x) === key);
+                const maxP = Math.max(...brothers.map(b => b.preco));
                 economiaTotal += (maxP - p.preco);
             });
 
@@ -1860,16 +1926,16 @@
                 let total = 0;
                 let missing = 0;
                 
-                // Pega a lista de produtos únicos (por código de barras)
-                const uniqueBarcodes = [...new Set(state.products.map(p => p.codigo_barras))];
+                // Pega a lista de produtos únicos (por código de barras ou keyword)
+                const uniqueKeys = [...new Set(state.products.map(p => getGroupKey(p)))];
                 
-                uniqueBarcodes.forEach(code => {
-                    const priceInMarket = state.products.find(p => p.codigo_barras === code && p.mercado_id === mIdx);
+                uniqueKeys.forEach(key => {
+                    const priceInMarket = state.products.find(p => getGroupKey(p) === key && p.mercado_id === mIdx);
                     if (priceInMarket) {
                         total += priceInMarket.preco;
                     } else {
-                        // Fallback: pega o primeiro preço disponível em qualquer mercado
-                        const anyPrice = state.products.find(p => p.codigo_barras === code);
+                        // Fallback: pega o primeiro preço disponível em qualquer mercado para esse mesmo item (mesma key)
+                        const anyPrice = state.products.find(p => getGroupKey(p) === key);
                         total += anyPrice ? anyPrice.preco : 0;
                         missing++;
                     }
@@ -1909,9 +1975,10 @@
             const uniqueProds = [];
             const seen = new Set();
             state.products.forEach(p => {
-                if (!seen.has(p.codigo_barras)) {
-                    seen.add(p.codigo_barras);
-                    const brothers = state.products.filter(x => x.codigo_barras === p.codigo_barras);
+                const key = getGroupKey(p);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    const brothers = state.products.filter(x => getGroupKey(x) === key);
                     const best = [...brothers].sort((a, b) => a.preco - b.preco)[0];
                     uniqueProds.push(best);
                 }
@@ -2067,24 +2134,29 @@
 
         // --- Theme Management ---
         function initTheme() {
-            // Force dark mode
-            document.body.classList.add('dark-mode');
-            // Ensure theme is stored as dark
-            localStorage.setItem('economiz-theme', 'dark');
-            updateThemeUI('dark');
+            const saved = localStorage.getItem('economiz-theme') || 'dark';
+            if (saved === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+            } else {
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
+            }
+            updateThemeUI(saved);
         }
 
         function toggleTheme() {
-            // Force dark mode and keep the theme value as 'dark' in storage
-            document.body.classList.remove('light-mode');
-            document.body.classList.add('dark-mode');
-            updateThemeUI('dark');
-            localStorage.setItem('economiz-theme', 'dark');
+            const isDark = document.body.classList.toggle('dark-mode');
+            document.body.classList.toggle('light-mode', !isDark);
+            const theme = isDark ? 'dark' : 'light';
+            updateThemeUI(theme);
+            localStorage.setItem('economiz-theme', theme);
         }
 
         function updateThemeUI(theme) {
             const icon = document.getElementById('theme-icon');
             const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!icon) return;
             
             if (theme === 'light') {
                 icon.setAttribute('data-lucide', 'sun');
