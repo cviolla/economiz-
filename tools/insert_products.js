@@ -20,7 +20,7 @@ async function run() {
     const { error: errMarket } = await supabase.from('mercados').insert([
         {
             id: mercadoId,
-            nome: "Supermercado Principal",
+            nome: "Mercado Atualizado",
             lat: -23.5505,
             long: -46.6333
         }
@@ -30,7 +30,7 @@ async function run() {
         console.error("Erro ao inserir mercado:", errMarket);
         return;
     }
-    console.log("Mercado inserido com sucesso: Supermercado Principal", mercadoId);
+    console.log("Mercado inserido com sucesso: Mercado Atualizado", mercadoId);
 
     console.log("Inserindo produtos...");
     const produtos = data.map(p => ({
