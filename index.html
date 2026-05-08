@@ -116,8 +116,19 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
 
+        body.light-mode .form-control {
+            background: rgba(0,0,0,0.04);
+            border-color: rgba(0,0,0,0.08);
+            color: #1A1A1F;
+        }
+
         body.light-mode .modal-content {
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            background: #FFFFFF;
+        }
+
+        body.light-mode .summary-box:active { 
+            background: rgba(0,0,0,0.05); 
         }
 
         * {
@@ -170,7 +181,7 @@
         .app-container {
             max-width: 500px;
             margin: 0 auto;
-            padding-bottom: 90px;
+            padding-bottom: 140px; /* Aumentado para evitar sobreposição da nav bar */
         }
 
         header {
@@ -736,26 +747,41 @@
         }
         .summary-box h4 { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #1A1A1F; text-transform: none; }
         .summary-box .value { font-size: 24px; font-weight: 800; color: #1A1A1F; margin-bottom: 5px; }
-        .summary-box .icon-box { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); }
-        .summary-box .icon-box i { color: #1A1A1F; width: 18px; height: 18px; }
-        .summary-box .trend { font-size: 10px; color: var(--success); font-weight: 600; margin: 0; }
+        .summary-box .icon-box { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #FFFFFF; /* Fundo branco sólido para contraste máximo */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .summary-box .icon-box i { width: 18px; height: 18px; stroke-width: 3px; }
+        .summary-box .trend { font-size: 10px; color: #1B5E20; font-weight: 800; margin: 0; }
         .summary-box::after { display: none; }
         
         .pastel-pink { background: #FFE5E5; }
-        .pastel-pink .icon-box i { color: #FF4B72; }
-        .pastel-yellow { background: #FFF0D4; }
-        .pastel-yellow .icon-box i { color: #E5B800; }
-        .pastel-green { background: #E5FFE5; }
-        .pastel-green .icon-box i { color: #00A843; }
-        .pastel-purple { background: #E5E5FF; }
-        .pastel-purple .icon-box i { color: #6B66FF; }
+        .pastel-pink .icon-box i { color: #D81B60; }
+
+        .pastel-yellow { background: #FFF9E5; }
+        .pastel-yellow .icon-box i { color: #F57F17; }
+
+        .pastel-green { background: #E8F5E9; }
+        .pastel-green .icon-box i { color: #2E7D32; }
+
+        .pastel-purple { background: #EDE7F6; }
+        .pastel-purple .icon-box i { color: #4527A0; }
 
         .ranking-card { background: linear-gradient(135deg, #FF4B72, #FF7B93); color: white; border: none; }
         .ranking-card:nth-child(even) { background: linear-gradient(135deg, #6B66FF, #8B86FF); }
         .ranking-card .market-name { color: rgba(255,255,255,0.9) !important; }
         .ranking-card .price-label { color: rgba(255,255,255,0.7) !important; }
         .ranking-card .icon-circle { background: rgba(255,255,255,0.2) !important; }
-        .ranking-card .icon-circle i { color: #FFFFFF !important; }rtant; }
+        .ranking-card .icon-circle i { color: #FFFFFF !important; }
     </style>
 </head>
 <body>
@@ -784,7 +810,7 @@
                     <i data-lucide="download-cloud"></i>
                 </button>
                 <button class="btn-reject" style="background: none; border: none; color: var(--accent); padding: 5px;" id="btn-toggle-theme" title="Alternar Tema">
-                    <i data-lucide="moon" id="theme-icon"></i>
+
                 </button>
                 <button class="btn-reject" style="background: none; border: none; color: var(--accent); padding: 5px;" id="btn-set-budget">
                     <i data-lucide="settings"></i>
@@ -1826,7 +1852,7 @@
                                  <span style="font-weight: 800; color: var(--accent);">${fCurr(p.preco)}</span>
                              </div>
                             <div class="product-meta">
-                                ${p.marca} • ${state.markets[p.mercado_id]?.name || state.markets[p.mercado_id]}
+                                ${p.marca} • ${state.markets[p.mercado_id]?.name || "Mercado"}
                                 ${p.comprado && p.data_compra ? `<br><span style="font-size: 10px; color: var(--success);">Comprado em: ${new Date(p.data_compra).toLocaleString('pt-BR')}</span>` : ''}
                             </div>
                             
@@ -1909,7 +1935,7 @@
                         missing++;
                     }
                 });
-                return { name: m.name || m, total, missing, id: mIdx };
+                return { name: m.name || `Mercado ${mIdx + 1}`, total, missing, id: mIdx };
             });
 
             const winner = [...marketTotals].sort((a, b) => a.total - b.total)[0];
@@ -1960,7 +1986,7 @@
                         </div>
                          <div>
                              <div style="font-weight: bold; font-size: 14px;">${e(best.nome)}</div>
-                             <div class="market-name" style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || state.markets[best.mercado_id]}</div>
+                             <div class="market-name" style="font-size: 11px; color: var(--success);">${state.markets[best.mercado_id]?.name || "Mercado"}</div>
                          </div>
                     </div>
                     <div style="text-align: right;">
@@ -2088,24 +2114,19 @@
 
         // --- Theme Management ---
         function initTheme() {
-            const savedTheme = localStorage.getItem('economiz-theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
-                document.body.classList.add('light-mode');
-                updateThemeUI('light');
-            } else {
-                updateThemeUI('dark');
-            }
-
-            document.getElementById('btn-toggle-theme').onclick = toggleTheme;
+            // Force dark mode
+            document.body.classList.add('dark-mode');
+            // Ensure theme is stored as dark
+            localStorage.setItem('economiz-theme', 'dark');
+            updateThemeUI('dark');
         }
 
         function toggleTheme() {
-            const isLight = document.body.classList.toggle('light-mode');
-            const theme = isLight ? 'light' : 'dark';
-            localStorage.setItem('economiz-theme', theme);
-            updateThemeUI(theme);
+            // Force dark mode and keep the theme value as 'dark' in storage
+            document.body.classList.remove('light-mode');
+            document.body.classList.add('dark-mode');
+            updateThemeUI('dark');
+            localStorage.setItem('economiz-theme', 'dark');
         }
 
         function updateThemeUI(theme) {
